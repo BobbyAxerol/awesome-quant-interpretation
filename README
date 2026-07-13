@@ -1,0 +1,75 @@
+# Script tự động refresh Phần I (Câu 1) từ file QuantStats mới
+
+Bộ 4 file này cho phép bạn đổi kết quả backtest (alpha khác, thời gian khác...) mà
+KHÔNG cần quay lại nhờ dựng report thủ công — chỉ cần chạy 1 lệnh.
+
+## File trong bộ
+
+| File | Vai trò |
+|---|---|
+| `template.html` | Khung báo cáo — Phần II (Câu 2) đã cố định, Phần I để "slot" trống chờ điền |
+| `qs_extract.py` | Tách 12 chart SVG + bảng KPI/EOY/Drawdown từ file quantstats bất kỳ |
+| `qs_analyze.py` | Tính badge ĐẠT/SÁT NGƯỠNG/CHƯA ĐẠT + sinh câu phân tích rule-based cho từng chart |
+| `build_report.py` | Script chính — ghép 2 module trên vào template, xuất file cuối |
+
+## Cấu trúc Phần I hiện tại
+
+1.1 Setup & Methodology · **1.2 Ý tưởng Cốt lõi** (visual hoá hình học, đã trừu tượng hoá — không nêu tên indicator cụ thể để tránh lộ logic) · 1.3 Headline KPIs · 1.4 Visual Performance — Full Backtest (12 chart train) · **1.5 Visual Performance — Test Set** (2 chart + 4 KPI chính, tuỳ chọn) · 1.6 Nhận định tổng kết.
+
+Mục 1.2 dùng 3 SVG vẽ tay (không phụ thuộc quantstats) nằm cố định trong `template.html` — muốn đổi hình minh hoạ, sửa trực tiếp 3 khối `<svg>` trong section `id="p1-overview"`.
+
+## Cài đặt (1 lần)
+
+```bash
+pip install beautifulsoup4 lxml pillow
+# (tuỳ chọn, chỉ cần nếu dùng --sanity-check — chỉ để render SVG->PNG, không cần ImageMagick)
+brew install librsvg        # macOS
+sudo apt-get install librsvg2-bin   # Linux
+```
+
+## Chạy
+
+```bash
+python3 build_report.py \
+    --quantstats path/to/quantstats_train.html \
+    --quantstats-test path/to/quantstats_test.html \
+    --template   template.html \
+    --out        report_final.html \
+    --sanity-check
+```
+
+`--quantstats-test` là tuỳ chọn — bỏ qua thì mục 1.5 giữ nguyên rỗng (không lỗi). Khi truyền vào,
+script lấy đúng 2 chart (Cumulative Return, Underwater) + 4 KPI (CAGR/MDD/PF/Sharpe) từ file đó,
+điền vào mục 1.5, **không đụng** đến 12 chart + bảng KPI đầy đủ của mục 1.4 (train).
+
+Mỗi lần đổi alpha/chiến lược mới → export lại quantstats html như bình thường
+(`quantstats.reports.html(returns, output="quantstats_moi.html")`) → chạy đúng lệnh trên.
+
+`--sanity-check` (khuyến khích bật) xuất kèm 1 ảnh `report_final.html.sanity_check.png`
+— contact-sheet 12 chart kèm tên slot, giúp bạn liếc mắt xác nhận thứ tự chart vẫn khớp
+trước khi tin tưởng hoàn toàn vào file HTML. Bước này dùng Pillow (font built-in, không cần
+font hệ thống) nên chạy được trên cả Mac/Linux; nếu vì lý do gì đó vẫn lỗi, script sẽ chỉ
+in cảnh báo và bỏ qua bước này — `report_final.html` (phần chính) vẫn được tạo bình thường,
+không bị ảnh hưởng.
+
+## Script tự động điền gì, và KHÔNG động vào gì
+
+**Tự động 100%:** 12 chart SVG, toàn bộ bảng KPI/EOY/Drawdown, 3 badge ĐẠT/SÁT NGƯỠNG/CHƯA ĐẠT,
+khung thời gian thực tế (đọc từ title report), cảnh báo lệch khung thời gian (so với 2018–2024),
+12 câu phân tích rule-based dưới mỗi chart + câu tổng kết mục 1.4, và mục 1.5 (2 chart + 4 KPI)
+nếu có `--quantstats-test`.
+
+**Không động vào:** toàn bộ Phần II (Câu 2), tài sản giao dịch (BTC/ETH — vì quantstats
+không ghi thông tin này), fee/slippage/sizing (lấy cố định theo đề bài).
+
+## Giới hạn cần biết
+
+- **Thứ tự 12 chart giả định cố định** theo đúng cách quantstats xuất khi KHÔNG có benchmark,
+  `mode="full"`. Nếu bạn đổi cách gọi `quantstats.reports.html()` (thêm benchmark, đổi mode),
+  số lượng/thứ tự chart có thể khác — cần mở `qs_extract.py`, sửa lại `SLOT_ORDER`, và luôn
+  chạy `--sanity-check` để xác nhận lại bằng mắt sau khi đổi.
+- **Câu phân tích là rule-based**, không phải AI viết lại mỗi lần — sẽ hơi công thức hơn bản
+  viết tay, nhưng luôn đúng với số liệu thật vì lấy trực tiếp từ bảng KPI. Muốn văn phong tự
+  nhiên hơn, có thể copy các câu này ra sửa tay sau khi script chạy xong.
+- Ngưỡng CAGR 20% / MDD 20% / PF 1.5 đang hard-code trong `qs_analyze.py` (biến `TARGETS`
+  ở đầu file) — đổi ở đó nếu đề bài/tiêu chí thay đổi.
