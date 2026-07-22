@@ -1,0 +1,72 @@
+{
+  "annotations": {},
+  "backend": "nautilus",
+  "diagnostics": {
+    "fills_count": 752,
+    "orders_count": 752,
+    "positions_count": 376
+  },
+  "effective_account": {
+    "base_currency": "USD",
+    "initial_capital": 20000.0,
+    "leverage": 1.0,
+    "maintenance_ratio": 0.005,
+    "margin_mode": "cross",
+    "oms_mode": "netting"
+  },
+  "effective_execution": {
+    "allow_partial_fill": false,
+    "applied_by": "NautilusTrader bar market execution",
+    "custom_slippage_applied_to_nautilus": false,
+    "fill_price_policy": "close",
+    "reject_on_insufficient_margin": true,
+    "requested_slippage_bps": 0.0,
+    "requested_slippage_rate": 0.0002,
+    "requested_slippage_source": "endpoint.slippage",
+    "same_bar_policy": "conservative"
+  },
+  "effective_fees": {
+    "applied_by": "NautilusTrader MakerTakerFeeModel",
+    "custom_fee_rate_applied_to_nautilus": false,
+    "legacy_fee_round_trip_ignored": 0.0004,
+    "requested_fee_convention": "one_way",
+    "requested_fee_rate": 0.0005,
+    "requested_fee_source": "endpoint.fee_rate"
+  },
+  "effective_sizing": {
+    "alloc_per_trade": 0.5,
+    "contract_size": 1.0,
+    "hedge_type": "%_equity",
+    "sizing_mode": "%_equity",
+    "trade_notional": 0.5,
+    "use_pyramiding": false
+  },
+  "engine": "NautilusTrader BacktestEngine",
+  "funding": {
+    "funding_rate": 0.0,
+    "use_funding": false
+  },
+  "instrument": {
+    "bar_type": "ETHUSDT-PERP.BINANCE-1-HOUR-LAST-EXTERNAL",
+    "instrument_id": "ETHUSDT-PERP.BINANCE",
+    "timeframe": "1-HOUR"
+  },
+  "nautilus": {
+    "bypass_logging": true,
+    "bypass_risk": false,
+    "close_positions_on_stop": false,
+    "force_flat_on_stop": null,
+    "instrument_id": "BTCUSDT-PERP.BINANCE",
+    "log_level": "ERROR",
+    "metadata": {},
+    "sizing_mode": "%_equity",
+    "starting_balance": 20000,
+    "strategy_id": "QuantBT-001",
+    "timeframe": "1h",
+    "trade_notional": 0.5,
+    "trader_id": "BACKTESTER-001",
+    "use_pyramiding": true,
+    "use_test_instrument": true
+  },
+  "schema_version": 2
+}
