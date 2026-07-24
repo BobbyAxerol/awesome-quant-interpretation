@@ -2,7 +2,7 @@
 
 # 📊 Quant Strategy Interpretation Platform
 
-**An Open-Source Automated Engine for Quantitative Trading Strategy Reports & AI Interpretation**
+**An Open-Source Automated Engine for Quantitative Trading Strategy Reports & Interactive ECharts Analytics**
 
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
@@ -11,16 +11,16 @@
 [![Pre-commit](https://img.shields.io/badge/Pre--commit-enabled-brightgreen?style=flat-square&logo=pre-commit)](https://pre-commit.com)
 
 <p align="center">
-  <a href="#-report-output-showcase">Output Showcase</a> •
+  <a href="#-interactive-echarts-showcase">ECharts Showcase</a> •
+  <a href="#-quantstats-svg-reports-showcase">QuantStats SVG Showcase</a> •
   <a href="#-key-features">Key Features</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-architecture">Architecture</a> •
   <a href="#-license">License</a>
 </p>
 
-<!-- HERO SHOWCASE: COVER OVERVIEW -->
-<a href="assets/cover_overview.png">
-  <img src="assets/cover_overview.png" alt="Quantitative Strategy Performance & Risk Analytics Report Header" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-top: 15px;">
+<!-- HERO SHOWCASE: ECHART MARKET PRICE ACTION & EXECUTION SIGNALS -->
+<a href="assets/echart_price_overlay.png">
+  <img src="assets/echart_price_overlay.png" alt="Market Execution Price Action & Trade Signal Overlay EChart" width="100%" style="border-radius: 8px; border: 1px solid #EAE7DD; margin-top: 15px;">
 </a>
 
 </div>
@@ -29,53 +29,55 @@
 
 ## 💡 Why Quant Interpretation Platform?
 
-When backtesting algorithmic trading strategies, raw Backtrader logs or standard QuantStats metrics are often difficult for non-technical stakeholders, peers, or fund investors to digest. 
+When backtesting algorithmic trading strategies, raw Backtrader logs or static QuantStats metrics are often difficult for non-technical stakeholders, peers, or fund investors to digest. 
 
-This open-source platform automatically extracts raw backtest runs, generates **interactive TradingView-style Apache ECharts**, builds a **2-tier dual-set report (In-Sample & Out-of-Sample)**, and enriches the final output with **free AI model insights (Google Gemini / Groq)**.
+This platform automatically extracts raw backtest runs (QuantStats HTML & trade logs), renders **interactive TradingView-style Apache ECharts**, builds a **2-tier dual-set report (In-Sample & Out-of-Sample)**, and enriches the final output with **free AI model insights (Google Gemini / Groq)**.
 
 ---
 
-## 📸 Report Output Showcase
+## 📈 Interactive ECharts Showcase
 
-### 1. Market Execution Price Action & Trade Signals Overlay
-Interactive EChart displaying the continuous market price action with BUY (▲ green) and SELL (▼ red) fill markers mapped directly onto execution price levels, paired with interactive timeline zoom sliders.
+### 1. Market Execution Price Action & Trade Signal Overlay
+Interactive EChart displaying the continuous market execution price line with BUY (▲ green) and SELL (▼ red) fill markers mapped directly onto execution price levels, complete with `dataZoom` timeline sliders.
 
-<a href="assets/price_signal_overlay.png">
-  <img src="assets/price_signal_overlay.png" alt="Market Price Action & Execution Overlay" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+<a href="assets/echart_price_overlay.png">
+  <img src="assets/echart_price_overlay.png" alt="Market Price Action & Trade Signal Overlay" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
 </a>
 
 ---
 
 ### 2. Standalone Equity Curve & Drawdown Waterfall
-Elevated 520px high-resolution equity curve paired with an inverse red shaded drawdown waterfall (%) underneath for rapid risk inspection.
+Elevated 520px high-resolution equity curve paired with an inverse red shaded drawdown waterfall (%) underneath for rapid drawdown and portfolio growth inspection.
 
-<a href="assets/standalone_equity.png">
-  <img src="assets/standalone_equity.png" alt="Standalone Equity Curve & Drawdown Waterfall" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+<a href="assets/echart_equity_waterfall.png">
+  <img src="assets/echart_equity_waterfall.png" alt="Standalone Equity Curve & Drawdown Waterfall" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
 </a>
 
 ---
 
-### 3. Headline Target KPIs & Performance Badging
-Automated threshold evaluation comparing CAGR, Max Drawdown, Profit Factor, and Sharpe Ratio against target benchmarks with visual badges (`✅ ĐẠT`, `⚠️ SÁT NGƯỠNG`, `❌ CHƯA ĐẠT`) and extended metric tables.
+### 3. Long vs Short Breakdown & MAE / MFE Excursion Distribution
+Dual-axis comparison of Long vs Short trades (Count, Win Rate %, PnL $) alongside Maximum Adverse (MAE) vs Favorable (MFE) Excursion scatter plots for trade risk diagnosis.
 
-<a href="assets/kpi_badges.png">
-  <img src="assets/kpi_badges.png" alt="Headline KPIs & Threshold Badges" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+<a href="assets/echarts_long_short_mae.png">
+  <img src="assets/echarts_long_short_mae.png" alt="Long vs Short & MAE/MFE Excursion Scatter" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
 </a>
 
 ---
 
-### 4. Core Strategy Methodology & Signal Flowcharts
-Collapsible technical breakdown detailing noise-smoothing principles, indicator formulations, and mathematical OLS projection flowcharts.
+## 🎨 QuantStats SVG Vector Reports Showcase
 
-<a href="assets/core_thesis.png">
-  <img src="assets/core_thesis.png" alt="Core Strategy Methodology & Diagrams" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+### Tier 2: Collapsible 12 QuantStats Vector SVG Charts
+In addition to interactive ECharts, the platform embeds all **12 raw QuantStats vector SVG charts** (Cumulative Return, Underwater Plot, Daily Returns, Rolling Sharpe/Sortino, Monthly Heatmap) inside collapsible toggle accordions (`<details class="qs-toggle">`) for full verification transparency.
+
+<a href="assets/quantstats_svg_gallery.png">
+  <img src="assets/quantstats_svg_gallery.png" alt="QuantStats Vector SVG Gallery Showcase" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
 </a>
 
 ---
 
 ## ✨ Key Features
 
-- 📈 **TradingView-Style ECharts Analytics**:
+- 📊 **TradingView-Style ECharts Analytics Suite**:
   - **Standalone Equity Curve**: 520px high equity curve with drawdown waterfall below.
   - **Continuous Price Action Overlay**: Execution price line with BUY (▲) and SELL (▼) fill markers and `dataZoom` timeline sliders.
   - **MAE / MFE Risk Distribution**: Maximum Adverse vs Favorable Excursion scatter plots.
@@ -90,6 +92,9 @@ Collapsible technical breakdown detailing noise-smoothing principles, indicator 
   - Zero-dependency REST adapter supporting **Google Gemini API** (`gemini-2.5-flash`) and **Groq API** (`llama-3.3-70b`).
   - Automatically loads keys from `.env` or `--api-key` CLI flag.
   - Generates Executive Summaries, Regime Vulnerability Diagnosis, and In-Sample vs Out-of-Sample Overfitting Ratings.
+
+- 🏆 **Dynamic KPI Threshold Badging**:
+  - Automatically evaluates CAGR, Max Drawdown, Profit Factor, and Sharpe Ratio against target benchmarks with visual status badges (`✅ ĐẠT`, `⚠️ SÁT NGƯỠNG`, `❌ CHƯA ĐẠT`).
 
 - 🎨 **Publication-Grade Paper Theme**:
   - Styled with classic typography (`Newsreader` serif, `IBM Plex Sans`, `IBM Plex Mono`) and dark paper palette (`#F6F5F0`, `#1C3D3A`, `#B8790A`).
