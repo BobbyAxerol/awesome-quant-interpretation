@@ -11,14 +11,17 @@
 [![Pre-commit](https://img.shields.io/badge/Pre--commit-enabled-brightgreen?style=flat-square&logo=pre-commit)](https://pre-commit.com)
 
 <p align="center">
-  <a href="#-key-features">Key Features</a> •
   <a href="#-report-output-showcase">Output Showcase</a> •
+  <a href="#-key-features">Key Features</a> •
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-architecture">Architecture</a> •
   <a href="#-license">License</a>
 </p>
 
-![Quant Strategy Report Banner](assets/hero_banner.png)
+<!-- HERO SHOWCASE: COVER OVERVIEW -->
+<a href="assets/cover_overview.png">
+  <img src="assets/cover_overview.png" alt="Quantitative Strategy Performance & Risk Analytics Report Header" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-top: 15px;">
+</a>
 
 </div>
 
@@ -26,19 +29,57 @@
 
 ## 💡 Why Quant Interpretation Platform?
 
-When testing algorithmic trading strategies, raw Backtrader/QuantStats metrics or CSV trade logs are often difficult for non-technical stakeholders, peers, or fund investors to interpret. 
+When backtesting algorithmic trading strategies, raw Backtrader logs or standard QuantStats metrics are often difficult for non-technical stakeholders, peers, or fund investors to digest. 
 
-This platform automatically extracts raw backtest runs (QuantStats HTML exports & trading logs), renders **interactive TradingView-style Apache ECharts**, builds a **2-tier dual-set report (In-Sample & Out-of-Sample)**, and enriches the final output with **free AI model insights (Google Gemini / Groq)**.
+This open-source platform automatically extracts raw backtest runs, generates **interactive TradingView-style Apache ECharts**, builds a **2-tier dual-set report (In-Sample & Out-of-Sample)**, and enriches the final output with **free AI model insights (Google Gemini / Groq)**.
+
+---
+
+## 📸 Report Output Showcase
+
+### 1. Market Execution Price Action & Trade Signals Overlay
+Interactive EChart displaying the continuous market price action with BUY (▲ green) and SELL (▼ red) fill markers mapped directly onto execution price levels, paired with interactive timeline zoom sliders.
+
+<a href="assets/price_signal_overlay.png">
+  <img src="assets/price_signal_overlay.png" alt="Market Price Action & Execution Overlay" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+</a>
+
+---
+
+### 2. Standalone Equity Curve & Drawdown Waterfall
+Elevated 520px high-resolution equity curve paired with an inverse red shaded drawdown waterfall (%) underneath for rapid risk inspection.
+
+<a href="assets/standalone_equity.png">
+  <img src="assets/standalone_equity.png" alt="Standalone Equity Curve & Drawdown Waterfall" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+</a>
+
+---
+
+### 3. Headline Target KPIs & Performance Badging
+Automated threshold evaluation comparing CAGR, Max Drawdown, Profit Factor, and Sharpe Ratio against target benchmarks with visual badges (`✅ ĐẠT`, `⚠️ SÁT NGƯỠNG`, `❌ CHƯA ĐẠT`) and extended metric tables.
+
+<a href="assets/kpi_badges.png">
+  <img src="assets/kpi_badges.png" alt="Headline KPIs & Threshold Badges" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+</a>
+
+---
+
+### 4. Core Strategy Methodology & Signal Flowcharts
+Collapsible technical breakdown detailing noise-smoothing principles, indicator formulations, and mathematical OLS projection flowcharts.
+
+<a href="assets/core_thesis.png">
+  <img src="assets/core_thesis.png" alt="Core Strategy Methodology & Diagrams" width="100%" style="border-radius: 6px; border: 1px solid #EAE7DD;">
+</a>
 
 ---
 
 ## ✨ Key Features
 
-- 📈 **Interactive TradingView-Style ECharts**: 
-  - **Standalone Equity Curve & Drawdown Waterfall**: High-resolution 520px equity curve paired with shaded drawdown percentage below.
-  - **Market Execution Price Action Overlay**: Continuous price line connecting entry/exit points with BUY (▲ green) and SELL (▼ red) price markers.
-  - **MAE / MFE Excursion Scatter**: Maximum Adverse vs Maximum Favorable Excursion for trade risk diagnosis.
-  - **Account Margin & Leverage Utilization**: Balance, free margin, and used margin over time from `account_report.csv`.
+- 📈 **TradingView-Style ECharts Analytics**:
+  - **Standalone Equity Curve**: 520px high equity curve with drawdown waterfall below.
+  - **Continuous Price Action Overlay**: Execution price line with BUY (▲) and SELL (▼) fill markers and `dataZoom` timeline sliders.
+  - **MAE / MFE Risk Distribution**: Maximum Adverse vs Favorable Excursion scatter plots.
+  - **Account Margin Utilization**: Equity vs Free Margin over time from `account_report.csv`.
   - **Long vs Short Breakdown, 30-Trade Rolling Win Rate, Return Distribution, and 2D Density Heatmap**.
 
 - 🛡️ **2-Tier Dual-Set Architecture (Train & Test)**:
@@ -50,29 +91,8 @@ This platform automatically extracts raw backtest runs (QuantStats HTML exports 
   - Automatically loads keys from `.env` or `--api-key` CLI flag.
   - Generates Executive Summaries, Regime Vulnerability Diagnosis, and In-Sample vs Out-of-Sample Overfitting Ratings.
 
-- 🏆 **Dynamic KPI Threshold Badging**:
-  - Automatically evaluates CAGR, Max Drawdown, Profit Factor, and Sharpe Ratio against target thresholds.
-  - Displays status badges (`✅ ĐẠT`, `⚠️ SÁT NGƯỠNG`, `❌ CHƯA ĐẠT`).
-
-- 🎨 **Publication-Grade Paper Theme Aesthetics**:
+- 🎨 **Publication-Grade Paper Theme**:
   - Styled with classic typography (`Newsreader` serif, `IBM Plex Sans`, `IBM Plex Mono`) and dark paper palette (`#F6F5F0`, `#1C3D3A`, `#B8790A`).
-
----
-
-## 🎨 Report Output Showcase
-
-![ECharts Suite & Analytics Preview](assets/echarts_suite_preview.png)
-
-### Included Report Sections
-
-| Section | Content & Functionality |
-| :--- | :--- |
-| **01. Cover & Strategy Overview** | Generalized metadata (Strategy name, Asset/Symbol, Author, Period), Executive AI summary, and Target Threshold badges. |
-| **02. Core Thesis & Setup** | Collapsible breakdown of momentum signals, indicators, and risk management parameters. |
-| **03. Performance Metrics** | KPI cards (CAGR, MDD, Profit Factor, Sharpe, Win Rate) + detailed metric breakdown table. |
-| **04. Train Set Analytics** | **Tier 1**: 9 Interactive ECharts. **Tier 2**: Collapsible 12 QuantStats SVG Vector Charts. |
-| **05. Test Set Analytics** | Out-of-Sample performance ECharts + Collapsible 12 QuantStats SVG Vector Charts. |
-| **06. Degradation Analysis** | Side-by-side In-Sample vs Out-of-Sample metric comparison table & AI Overfitting Score. |
 
 ---
 
@@ -155,7 +175,7 @@ awesome-quant-interpretation/
 │   └── renderers/              # HTMLReportRenderer & SanityChecker
 ├── data/                       # Backtest dataset folders (Train & Test sets)
 ├── tests/                      # Pytest unit testing suite
-├── assets/                     # README landing page assets & previews
+├── assets/                     # README landing page marketing screenshots & assets
 ├── template.html               # Main report HTML paper theme template
 ├── main.py                     # Primary CLI entrypoint & .env loader
 ├── .env.example                # Template for environment configuration
