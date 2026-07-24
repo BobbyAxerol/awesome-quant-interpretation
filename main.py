@@ -23,6 +23,19 @@ from quant_bot.renderers.html_renderer import HTMLReportRenderer
 from quant_bot.renderers.sanity_checker import SanityChecker
 
 
+def load_env_file(env_path: str = ".env"):
+    """Simple zero-dependency .env file loader."""
+    if not os.path.exists(env_path):
+        return
+    with open(env_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, val = line.split("=", 1)
+                os.environ.setdefault(key.strip(), val.strip().strip('"\''))
+
+
+
 def build_dataset(html_path: str, run_dir: Optional[str] = None) -> ReportDataset:
     html_extractor = QuantStatsHTMLExtractor(html_path)
     html_data = html_extractor.extract()
@@ -49,6 +62,7 @@ def build_dataset(html_path: str, run_dir: Optional[str] = None) -> ReportDatase
 
 
 def main():
+    load_env_file()
     parser = argparse.ArgumentParser(
         description="QuantStats Automated Report Generator & AI Interpretation Engine (v2 OOP)"
     )
