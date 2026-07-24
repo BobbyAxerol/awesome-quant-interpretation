@@ -12,7 +12,7 @@
 
 <br/>
 
-### 🌐 [Click Here to View Live Interactive HTML Report (report_final.html)](https://htmlpreview.github.io/?https://github.com/BobbyAxerol/awesome-quant-interpretation/blob/dev/report_final.html)
+### 🌐 [🚀 Open Live Interactive Report (raw.githack)](https://raw.githack.com/BobbyAxerol/awesome-quant-interpretation/dev/report_final.html) &nbsp;|&nbsp; 🖥️ [GitHub Pages Demo](https://bobbyaxerol.github.io/awesome-quant-interpretation/) &nbsp;|&nbsp; 📄 [assets/report_final.html](assets/report_final.html)
 
 <br/>
 
