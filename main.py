@@ -75,7 +75,10 @@ def main():
             train_html = candidate
 
     if not train_html:
-        if os.path.exists("report_ToTheMoon-Trainset/quantstats_daily.html"):
+        if os.path.exists("data/report_ToTheMoon-Trainset/quantstats_daily.html"):
+            train_html = "data/report_ToTheMoon-Trainset/quantstats_daily.html"
+            train_dir = "data/report_ToTheMoon-Trainset"
+        elif os.path.exists("report_ToTheMoon-Trainset/quantstats_daily.html"):
             train_html = "report_ToTheMoon-Trainset/quantstats_daily.html"
             train_dir = "report_ToTheMoon-Trainset"
         else:

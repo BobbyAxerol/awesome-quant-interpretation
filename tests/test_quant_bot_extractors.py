@@ -8,7 +8,7 @@ from quant_bot.extractors.csv_extractor import StrategyRunExtractor
 
 
 def test_html_extractor_with_real_sample():
-    sample_html = "report_ToTheMoon-Trainset/quantstats_daily.html"
+    sample_html = "data/report_ToTheMoon-Trainset/quantstats_daily.html" if os.path.exists("data/report_ToTheMoon-Trainset/quantstats_daily.html") else "report_ToTheMoon-Trainset/quantstats_daily.html"
     if os.path.exists(sample_html):
         extractor = QuantStatsHTMLExtractor(sample_html)
         data = extractor.extract()
@@ -22,7 +22,7 @@ def test_html_extractor_with_real_sample():
 
 
 def test_csv_extractor_with_real_sample():
-    sample_dir = "report_ToTheMoon-Trainset"
+    sample_dir = "data/report_ToTheMoon-Trainset" if os.path.exists("data/report_ToTheMoon-Trainset") else "report_ToTheMoon-Trainset"
     if os.path.exists(sample_dir):
         extractor = StrategyRunExtractor(sample_dir)
         data = extractor.extract_all()
