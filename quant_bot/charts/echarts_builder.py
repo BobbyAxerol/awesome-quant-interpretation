@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         elem_id = f"{self.prefix}echart-equity-waterfall"
         timestamps = [pt.timestamp[:16] for pt in self.equity_curve]
         equities = [pt.equity for pt in self.equity_curve]
-        drawdowns = [abs(pt.drawdown) for pt in self.equity_curve]
+        drawdowns = [round(abs(pt.drawdown) * 100.0, 2) if abs(pt.drawdown) <= 1.0 else round(abs(pt.drawdown), 2) for pt in self.equity_curve]
 
         ts_json = json.dumps(timestamps)
         eq_json = json.dumps(equities)
@@ -73,10 +73,10 @@ document.addEventListener('DOMContentLoaded', function() {{
       backgroundColor: 'transparent',
       title: {{ text: 'Standalone Equity Curve & Drawdown Waterfall', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'cross' }} }},
-      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      legend: {{ top: 26, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
       grid: [
-        {{ left: '6%', right: '5%', top: '22%', height: '48%', containLabel: true }},
-        {{ left: '6%', right: '5%', top: '74%', height: '18%', containLabel: true }}
+        {{ left: '6%', right: '5%', top: '16%', height: '56%', containLabel: true }},
+        {{ left: '6%', right: '5%', top: '76%', height: '18%', containLabel: true }}
       ],
       dataZoom: [{{ type: 'inside', xAxisIndex: [0, 1] }}, {{ type: 'slider', xAxisIndex: [0, 1], bottom: 2, height: 18 }}],
       xAxis: [
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         {{ type: 'value', name: 'Drawdown (%)', gridIndex: 1, inverse: true, splitLine: {{ show: false }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }}
       ],
       series: [
-        {{ name: 'Equity ($)', type: 'line', data: {eq_json}, xAxisIndex: 0, yAxisIndex: 0, smooth: true, itemStyle: {{ color: '#1C3D3A' }}, lineStyle: {{ width: 2 }} }},
+        {{ name: 'Equity ($)', type: 'line', data: {eq_json}, xAxisIndex: 0, yAxisIndex: 0, smooth: true, itemStyle: {{ color: '#1C3D3A' }}, lineStyle: {{ width: 2.5 }} }},
         {{ name: 'Drawdown (%)', type: 'line', data: {dd_json}, xAxisIndex: 1, yAxisIndex: 1, areaStyle: {{ color: '#AC3B34', opacity: 0.35 }}, itemStyle: {{ color: '#AC3B34' }} }}
       ]
     }};
@@ -102,35 +102,50 @@ document.addEventListener('DOMContentLoaded', function() {{
             return ""
 
         elem_id = f"{self.prefix}echart-price-signals"
+
+        # Build chronological continuous price series from open and close execution points
+        time_price_dict = {}
         buy_signals = []
         sell_signals = []
 
         for t in self.trades:
             open_ts = t.open_datetime[:16]
+            close_ts = t.close_datetime[:16]
+
+            time_price_dict[open_ts] = t.entry_price
+            time_price_dict[close_ts] = t.exit_price
+
             if t.is_long:
                 buy_signals.append([open_ts, t.entry_price, t.realized_pnl])
             else:
                 sell_signals.append([open_ts, t.entry_price, t.realized_pnl])
 
+        # Sort all execution timestamps chronologically
+        sorted_timestamps = sorted(list(time_price_dict.keys()))
+        continuous_prices = [[ts, time_price_dict[ts]] for ts in sorted_timestamps]
+
+        prices_json = json.dumps(continuous_prices)
         buy_json = json.dumps(buy_signals)
         sell_json = json.dumps(sell_signals)
 
         js = f"""
-  // Price Action & Trade Signals Overlay
+  // Price Action & Continuous Market Execution Curve
   var elem2 = document.getElementById('{elem_id}');
   if (elem2) {{
     var chart2 = echarts.init(elem2);
     var option2 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Market Price Action & Execution Signals (Buy/Sell Price Mapping)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
-      tooltip: {{ trigger: 'item', formatter: function(p) {{ return 'Time: ' + p.value[0] + '<br/>Entry Price: $' + p.value[1] + '<br/>PnL: $' + p.value[2]; }} }},
+      title: {{ text: 'Market Execution Price Action & Trade Signal Overlay', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
+      tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'cross' }} }},
       legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
-      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '15%', containLabel: true }},
+      grid: {{ left: '6%', right: '5%', top: '20%', bottom: '16%', containLabel: true }},
+      dataZoom: [{{ type: 'inside' }}, {{ type: 'slider', bottom: 2, height: 18 }}],
       xAxis: {{ type: 'category', axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
-      yAxis: {{ type: 'value', name: 'Execution Price ($)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+      yAxis: {{ type: 'value', name: 'Price ($)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
       series: [
-        {{ name: 'Long Entry (Buy)', type: 'scatter', data: {buy_json}, symbol: 'triangle', symbolSize: 10, itemStyle: {{ color: '#10B981' }} }},
-        {{ name: 'Short Entry (Sell)', type: 'scatter', data: {sell_json}, symbol: 'triangle', symbolRotate: 180, symbolSize: 10, itemStyle: {{ color: '#EF4444' }} }}
+        {{ name: 'Execution Price Line', type: 'line', data: {prices_json}, connectNulls: true, smooth: true, lineStyle: {{ width: 1.8, color: '#38BDF8' }}, itemStyle: {{ color: '#38BDF8' }} }},
+        {{ name: 'Long Buy Fill', type: 'scatter', data: {buy_json}, symbol: 'triangle', symbolSize: 11, itemStyle: {{ color: '#10B981' }} }},
+        {{ name: 'Short Sell Fill', type: 'scatter', data: {sell_json}, symbol: 'triangle', symbolRotate: 180, symbolSize: 11, itemStyle: {{ color: '#EF4444' }} }}
       ]
     }};
     chart2.setOption(option2);

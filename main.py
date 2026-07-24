@@ -53,6 +53,7 @@ def build_dataset(html_path: str, run_dir: Optional[str] = None) -> ReportDatase
         dataset.trades = run_data.get("trades", [])
         dataset.equity_curve = run_data.get("equity_curve", [])
         dataset.fills = run_data.get("fills", [])
+        dataset.account_history = run_data.get("account_history", [])
         dataset.metrics_summary = run_data.get("metrics_summary", {})
 
     badge_analyzer = PerformanceBadgeAnalyzer(dataset.kpi)
