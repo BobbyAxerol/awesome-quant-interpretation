@@ -41,6 +41,11 @@ class RuleBasedStrategyInterpreter(BaseInterpreter):
             "return_quantiles": self._a_return_quantiles(),
             "part1_summary": self._a_part1_summary(kpi, badges, trade_stats),
             "trade_execution_summary": self._a_trade_execution_summary(trade_stats),
+            "echart_equity_summary": self._a_echart_equity_summary(kpi),
+            "echart_price_signals_summary": self._a_echart_price_signals_summary(trade_stats),
+            "echart_long_short_summary": self._a_echart_long_short_summary(trade_stats),
+            "echart_mae_mfe_summary": self._a_echart_mae_mfe_summary(trade_stats),
+            "echart_account_margin_summary": self._a_echart_account_margin_summary(kpi),
         }
         return out
 
@@ -162,3 +167,26 @@ class RuleBasedStrategyInterpreter(BaseInterpreter):
             f"Tổng phí giao dịch đã trả: ${trade_stats['total_fees']:,.2f}. "
             f"Chuỗi thắng dài nhất: {trade_stats['max_win_streak']} lệnh, Chuỗi thua dài nhất: {trade_stats['max_loss_streak']} lệnh."
         )
+
+    def _a_echart_equity_summary(self, k: Dict[str, Any]) -> str:
+        cagr = kpi_get(k, "cagrpct")
+        mdd = kpi_get(k, "max_drawdown")
+        return f"Đường cong tài sản thể hiện mức tăng trưởng tích lũy CAGR {cagr}% đi kèm mức sụt giảm tài sản lớn nhất Max Drawdown {mdd}%. Khoảng tăng trưởng chính tập trung ở các giai đoạn biến động mạnh."
+
+    def _a_echart_price_signals_summary(self, trade_stats: Optional[Dict[str, Any]]) -> str:
+        if not trade_stats:
+            return "Đồ thị thể hiện các điểm khớp lệnh thực tế (Mua / Bán) đè lên đường giá thị trường."
+        return f"Chiến lược thực thi tổng cộng {trade_stats.get('total_trades', 0)} lệnh giao dịch. Các điểm tín hiệu Mua (▲ Long) và Bán (▼ Short) phản ánh chính xác điểm thâm nhập theo đường giá thực tế."
+
+    def _a_echart_long_short_summary(self, trade_stats: Optional[Dict[str, Any]]) -> str:
+        if not trade_stats:
+            return "So sánh hiệu năng giữa hai chiều Long và Short."
+        lw = trade_stats.get("long_win_rate", 0.0)
+        sw = trade_stats.get("short_win_rate", 0.0)
+        return f"Tỷ lệ thắng chiều Long đạt {lw}% so với chiều Short đạt {sw}%. Sự chênh lệch này cho thấy mức độ thích ứng của chiến lược theo xu hướng chủ đạo của tài sản."
+
+    def _a_echart_mae_mfe_summary(self, trade_stats: Optional[Dict[str, Any]]) -> str:
+        return "Phân tích mức độ gồng lỗ (MAE) và gồng lãi (MFE) giúp đánh giá xem lệnh có bị dính stop-loss quá sớm hoặc chốt lời quá muộn hay không."
+
+    def _a_echart_account_margin_summary(self, k: Dict[str, Any]) -> str:
+        return "Theo dõi số dư tài khoản thực tế và lượng ký quỹ khả dụng để quản lý rủi ro cháy tài sản và kiểm soát mức độ đòn bẩy."
