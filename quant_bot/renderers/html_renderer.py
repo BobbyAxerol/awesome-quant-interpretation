@@ -54,6 +54,7 @@ class HTMLReportRenderer:
         analysis_texts: Dict[str, str],
         test_dataset: Optional[ReportDataset] = None,
         custom_charts: Optional[Dict[str, str]] = None,
+        echarts_scripts: Optional[str] = None,
     ) -> str:
         with open(self.template_path, encoding="utf-8") as f:
             soup = BeautifulSoup(f.read(), "lxml")
@@ -71,6 +72,9 @@ class HTMLReportRenderer:
 
         if test_dataset:
             self._fill_test_section(soup, test_dataset)
+
+        if echarts_scripts and soup.body:
+            soup.body.append(BeautifulSoup(echarts_scripts, "html.parser"))
 
         return str(soup)
 

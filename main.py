@@ -60,11 +60,14 @@ def main():
     parser.add_argument("--out", default="report_final.html", help="File output báo cáo HTML cuối cùng")
     parser.add_argument("--sanity-check", action="store_true", help="Xuất kèm ảnh contact-sheet kiểm tra thứ tự chart")
 
+    parser.add_argument("--api-key", help="API Key cho AI model (như Gemini / Groq free tier API)")
+    parser.add_argument("--strategy-name", default="ToTheMoon Volatility Breakout", help="Tên chiến lược giao dịch")
+
     args = parser.parse_args()
 
     # Determine train html path
     train_html = args.quantstats
-    train_dir = args.train-dir if hasattr(args, "train-dir") else args.train_dir
+    train_dir = args.train_dir
 
     if not train_html and train_dir:
         candidate = os.path.join(train_dir, "quantstats_daily.html")
@@ -72,7 +75,6 @@ def main():
             train_html = candidate
 
     if not train_html:
-        # Fallback search default folders
         if os.path.exists("report_ToTheMoon-Trainset/quantstats_daily.html"):
             train_html = "report_ToTheMoon-Trainset/quantstats_daily.html"
             train_dir = "report_ToTheMoon-Trainset"
@@ -81,12 +83,13 @@ def main():
 
     print(f"[1/5] Trích xuất dữ liệu TRAIN SET từ: {train_html} ...")
     train_dataset = build_dataset(train_html, train_dir)
+    train_dataset.meta["strategy_name"] = args.strategy_name
 
     print(f"       -> {len(train_dataset.svgs)} charts, {len(train_dataset.kpi)} KPI metrics, {len(train_dataset.trades)} trades.")
 
     # Determine test html path
     test_html = args.quantstats_test
-    test_dir = args.test-dir if hasattr(args, "test-dir") else args.test_dir
+    test_dir = args.test_dir
 
     if not test_html and test_dir:
         candidate = os.path.join(test_dir, "quantstats_daily.html")
@@ -105,19 +108,25 @@ def main():
         trade_analyzer = TradeLogAnalyzer(train_dataset.trades)
         trade_stats = trade_analyzer.analyze()
 
-    # Custom SVG overlay charts
+    # Custom SVG & ECharts
     custom_charts = {}
+    echarts_scripts = ""
     if train_dataset.equity_curve and train_dataset.trades:
-        print("[3/5] Khớp và dựng custom chart: Equity Curve + Trade Entry/Exit Overlay ...")
+        print("[3/5] Dựng bộ biểu đồ tương tác ECharts (Equity Overlay, Long/Short, PnL Dist, Heatmap) ...")
         overlay_chart = EquityTradeOverlayChart(train_dataset.equity_curve, train_dataset.trades)
         custom_charts["equity_trade_overlay"] = overlay_chart.render_svg()
 
         pnl_dist_chart = TradePnLDistributionChart(train_dataset.trades)
         custom_charts["trade_pnl_distribution"] = pnl_dist_chart.render_svg()
 
+        from quant_bot.charts.echarts_builder import EChartsBuilder
+        echarts_builder = EChartsBuilder(train_dataset.equity_curve, train_dataset.trades)
+        echarts_scripts = echarts_builder.generate_all_scripts()
+
     # Generate AI / Rule Interpretation
-    print("[4/5] Sinh nhận định phân tích chiến lược ...")
-    interpreter = RuleBasedStrategyInterpreter()
+    print("[4/5] Sinh nhận định phân tích chiến lược (AI / Rule Engine) ...")
+    from quant_bot.interpreters.ai_interpreter import AIStrategyInterpreter
+    interpreter = AIStrategyInterpreter(api_key=args.api_key)
     analysis_texts = interpreter.generate_analysis(
         kpi=train_dataset.kpi,
         eoy=train_dataset.eoy,
@@ -135,6 +144,7 @@ def main():
         analysis_texts=analysis_texts,
         test_dataset=test_dataset,
         custom_charts=custom_charts,
+        echarts_scripts=echarts_scripts,
     )
 
     with open(args.out, "w", encoding="utf-8") as f:
