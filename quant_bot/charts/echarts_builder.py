@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         elem_id = f"{self.prefix}echart-equity-waterfall"
         timestamps = [pt.timestamp[:16] for pt in self.equity_curve]
         equities = [pt.equity for pt in self.equity_curve]
-        drawdowns = [abs(pt.drawdown) for pt in self.equity_curve]
+        drawdowns = [round(abs(pt.drawdown) * 100.0, 2) if abs(pt.drawdown) <= 1.0 else round(abs(pt.drawdown), 2) for pt in self.equity_curve]
 
         ts_json = json.dumps(timestamps)
         eq_json = json.dumps(equities)
