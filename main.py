@@ -127,9 +127,9 @@ def main():
 
     # Custom SVG & ECharts
     custom_charts = {}
-    echarts_scripts = ""
+    echarts_scripts_list = []
     if train_dataset.equity_curve and train_dataset.trades:
-        print("[3/5] Dựng bộ biểu đồ tương tác ECharts (Equity Overlay, Long/Short, PnL Dist, Heatmap) ...")
+        print("[3/5] Dựng bộ biểu đồ tương tác ECharts cho TRAIN SET ...")
         overlay_chart = EquityTradeOverlayChart(train_dataset.equity_curve, train_dataset.trades)
         custom_charts["equity_trade_overlay"] = overlay_chart.render_svg()
 
@@ -137,8 +137,26 @@ def main():
         custom_charts["trade_pnl_distribution"] = pnl_dist_chart.render_svg()
 
         from quant_bot.charts.echarts_builder import EChartsBuilder
-        echarts_builder = EChartsBuilder(train_dataset.equity_curve, train_dataset.trades)
-        echarts_scripts = echarts_builder.generate_all_scripts()
+        train_builder = EChartsBuilder(
+            train_dataset.equity_curve,
+            train_dataset.trades,
+            account_history=train_dataset.account_history,
+            prefix="train-"
+        )
+        echarts_scripts_list.append(train_builder.generate_all_scripts())
+
+    if test_dataset and test_dataset.equity_curve and test_dataset.trades:
+        print("[3b/5] Dựng bộ biểu đồ tương tác ECharts cho TEST SET ...")
+        from quant_bot.charts.echarts_builder import EChartsBuilder
+        test_builder = EChartsBuilder(
+            test_dataset.equity_curve,
+            test_dataset.trades,
+            account_history=test_dataset.account_history,
+            prefix="test-"
+        )
+        echarts_scripts_list.append(test_builder.generate_all_scripts())
+
+    echarts_scripts = "\n".join(s for s in echarts_scripts_list if s)
 
     # Generate AI / Rule Interpretation
     print("[4/5] Sinh nhận định phân tích chiến lược (AI / Rule Engine) ...")

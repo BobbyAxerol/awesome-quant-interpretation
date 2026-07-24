@@ -293,6 +293,38 @@ td.num, th.num{ font-family:var(--font-mono); text-align:right; }
 .placeholder-figure .ph-icon{ font-family:var(--font-mono); font-size:22px; color:var(--line); margin-bottom:8px; }
 
 /* ============================================================
+   COLLAPSIBLE TOGGLE CONTAINERS
+   ============================================================ */
+details.qs-toggle {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper-raised);
+  margin: 24px 0 34px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+details.qs-toggle summary {
+  padding: 14px 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  background: var(--accent-soft);
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+details.qs-toggle summary:hover {
+  background: var(--line-soft);
+}
+details.qs-toggle .qs-toggle-body {
+  padding: 24px 20px;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* ============================================================
    FOOTER
    ============================================================ */
 .paper-footer{ margin-top:100px; padding-top:24px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
@@ -664,207 +696,150 @@ V_t=\sum_{i=0}^{N-1}g_iS_{t-(N-1)+i}
 </table>
 <p data-analysis="worst_dd_periods" style="font-size:13.5px;color:var(--ink-soft);"></p>
 </section>
-<section class="level2 wide" id="p1-echarts">
-<h2>1.4 ECharts Interactive Analytics</h2>
-<p class="narrow" style="margin-bottom:28px;">Bộ biểu đồ tương tác Apache ECharts được dựng tự động từ dữ liệu thô backtest (<code>trade_log.csv</code>, <code>equity_curve.csv</code>). Hỗ trợ phóng to/thu nhỏ timeline, phân tích mật độ lệnh, phân phối rủi ro và so sánh Long vs Short.</p>
+</section>
+<!-- ============ SECTION 1.4: TRAIN SET ANALYTICS ============ -->
+<section class="level2 wide" id="p1-train-analytics">
+<h2>1.4 In-Sample Performance Analytics — Train Set</h2>
+<p class="narrow" style="margin-bottom:24px;">Bộ biểu đồ tương tác ECharts được dựng trực tiếp từ dữ liệu thô backtest (<code>trade_log.csv</code>, <code>positions_report.csv</code>, <code>account_report.csv</code>). Hỗ trợ phóng to timeline, theo dõi khớp lệnh giá thị trường và phân tích rủi ro MAE/MFE.</p>
+
+<!-- Tier 1: ECharts Suite -->
+<figure class="chart-figure">
+<div id="train-echart-equity-waterfall" style="width:100%;height:400px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
+</figure>
 
 <figure class="chart-figure">
-<div id="echart-equity-overlay" style="width:100%;height:420px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
-<figcaption>
-<div class="fig-num">EChart 1</div>
-<div class="fig-title">Interactive Equity Curve &amp; Trade Entry Overlay</div>
-</figcaption>
+<div id="train-echart-price-signals" style="width:100%;height:380px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
 </figure>
 
 <div class="chart-grid-2">
 <figure class="chart-figure">
-<div id="echart-long-short" style="width:100%;height:350px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
-<figcaption>
-<div class="fig-num">EChart 2</div>
-<div class="fig-title">Long vs. Short Performance Breakdown</div>
-</figcaption>
+<div id="train-echart-long-short" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
 </figure>
 <figure class="chart-figure">
-<div id="echart-pnl-dist" style="width:100%;height:350px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
-<figcaption>
-<div class="fig-num">EChart 3</div>
-<div class="fig-title">Trade Return % Frequency Distribution</div>
-</figcaption>
+<div id="train-echart-mae-mfe" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
 </figure>
 </div>
 
 <div class="chart-grid-2">
 <figure class="chart-figure">
-<div id="echart-rolling-metrics" style="width:100%;height:350px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
-<figcaption>
-<div class="fig-num">EChart 4</div>
-<div class="fig-title">30-Trade Rolling Win Rate Stability</div>
-</figcaption>
+<div id="train-echart-account-margin" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
 </figure>
 <figure class="chart-figure">
-<div id="echart-duration-scatter" style="width:100%;height:350px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
-<figcaption>
-<div class="fig-num">EChart 5</div>
-<div class="fig-title">Holding Duration vs. Return Scatter</div>
-</figcaption>
+<div id="train-echart-pnl-dist" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
 </figure>
 </div>
+
+<div class="chart-grid-2">
+<figure class="chart-figure">
+<div id="train-echart-rolling-metrics" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
+</figure>
+<figure class="chart-figure">
+<div id="train-echart-duration-scatter" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
+</figure>
+</div>
+
+<!-- Tier 2: Collapsible QuantStats SVG Charts (Train Set) -->
+<details class="qs-toggle">
+<summary>
+<span>Chi tiết 12 Biểu đồ Vector QuantStats Gốc (Train Set)</span>
+<span>Mở rộng / Thu hẹp ▼</span>
+</summary>
+<div class="qs-toggle-body">
+<figure class="chart-figure">
+<div class="chart-frame" data-slot="cumulative_return"></div>
+<figcaption><div class="fig-num">Hình 1</div><div class="fig-title">Cumulative Return</div><div class="fig-note" data-analysis="cumulative_return"></div></figcaption>
+</figure>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="cumulative_return_log"></div><figcaption><div class="fig-num">Hình 2</div><div class="fig-title">Cumulative Return (Log Scale)</div><div class="fig-note" data-analysis="cumulative_return_log"></div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="eoy_returns_chart"></div><figcaption><div class="fig-num">Hình 3</div><div class="fig-title">EOY Returns</div><div class="fig-note" data-analysis="eoy_returns_chart"></div></figcaption></figure>
+</div>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="monthly_dist"></div><figcaption><div class="fig-num">Hình 4</div><div class="fig-title">Monthly Returns Distribution</div><div class="fig-note" data-analysis="monthly_dist"></div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="return_quantiles"></div><figcaption><div class="fig-num">Hình 5</div><div class="fig-title">Return Quantiles</div><div class="fig-note" data-analysis="return_quantiles"></div></figcaption></figure>
+</div>
+<figure class="chart-figure"><div class="chart-frame" data-slot="daily_returns"></div><figcaption><div class="fig-num">Hình 6</div><div class="fig-title">Daily Returns</div><div class="fig-note" data-analysis="daily_returns"></div></figcaption></figure>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="rolling_vol"></div><figcaption><div class="fig-num">Hình 7</div><div class="fig-title">Rolling Volatility</div><div class="fig-note" data-analysis="rolling_vol"></div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="rolling_sharpe"></div><figcaption><div class="fig-num">Hình 8</div><div class="fig-title">Rolling Sharpe</div><div class="fig-note" data-analysis="rolling_sharpe"></div></figcaption></figure>
+</div>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="rolling_sortino"></div><figcaption><div class="fig-num">Hình 9</div><div class="fig-title">Rolling Sortino</div><div class="fig-note" data-analysis="rolling_sortino"></div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="worst_dd_periods"></div><figcaption><div class="fig-num">Hình 10</div><div class="fig-title">Worst Drawdowns</div><div class="fig-note" data-analysis="worst_dd_periods"></div></figcaption></figure>
+</div>
+<figure class="chart-figure"><div class="chart-frame" data-slot="underwater"></div><figcaption><div class="fig-num">Hình 11</div><div class="fig-title">Underwater Plot</div><div class="fig-note" data-analysis="underwater"></div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="monthly_heatmap"></div><figcaption><div class="fig-num">Hình 12</div><div class="fig-title">Monthly Heatmap</div><div class="fig-note" data-analysis="monthly_heatmap"></div></figcaption></figure>
+</div>
+</details>
 </section>
 
-<section class="level2 wide" id="p1-charts">
-<h2>1.5 Visual Performance Review — QuantStats (Train Set)</h2>
-<p class="narrow" style="margin-bottom:28px;">Toàn bộ chart dưới đây được xuất trực tiếp từ QuantStats (<code>quantstats.reports.html()</code>), giữ nguyên định dạng vector SVG gốc để đảm bảo độ nét khi in. Mỗi chart kèm một đoạn phân tích ngắn (rule-based) gắn với số liệu thực tế ở trên.</p>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="cumulative_return"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 1</div>
-<div class="fig-title">Cumulative Return</div>
-<div class="fig-note" data-analysis="cumulative_return"></div>
-</figcaption>
-</figure>
-<div class="chart-grid-2"><figure class="chart-figure">
-<div class="chart-frame" data-slot="cumulative_return_log"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 2</div>
-<div class="fig-title">Cumulative Return (Log Scale)</div>
-<div class="fig-note" data-analysis="cumulative_return_log"></div>
-</figcaption>
-</figure><figure class="chart-figure">
-<div class="chart-frame" data-slot="eoy_returns_chart"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 3</div>
-<div class="fig-title">EOY Returns</div>
-<div class="fig-note" data-analysis="eoy_returns_chart"></div>
-</figcaption>
-</figure></div>
-<div class="chart-grid-2"><figure class="chart-figure">
-<div class="chart-frame" data-slot="monthly_dist"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 4</div>
-<div class="fig-title">Distribution of Monthly Returns</div>
-<div class="fig-note" data-analysis="monthly_dist"></div>
-</figcaption>
-</figure><figure class="chart-figure">
-<div class="chart-frame" data-slot="return_quantiles"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 5</div>
-<div class="fig-title">Return Quantiles</div>
-<div class="fig-note" data-analysis="return_quantiles"></div>
-</figcaption>
-</figure></div>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="daily_returns"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 6</div>
-<div class="fig-title">Daily Returns</div>
-<div class="fig-note" data-analysis="daily_returns"></div>
-</figcaption>
-</figure>
-<div class="chart-grid-2"><figure class="chart-figure">
-<div class="chart-frame" data-slot="rolling_vol"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 7</div>
-<div class="fig-title">Rolling Volatility (6-Month)</div>
-<div class="fig-note" data-analysis="rolling_vol"></div>
-</figcaption>
-</figure><figure class="chart-figure">
-<div class="chart-frame" data-slot="rolling_sharpe"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 8</div>
-<div class="fig-title">Rolling Sharpe (6-Month)</div>
-<div class="fig-note" data-analysis="rolling_sharpe"></div>
-</figcaption>
-</figure></div>
-<div class="chart-grid-2"><figure class="chart-figure">
-<div class="chart-frame" data-slot="rolling_sortino"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 9</div>
-<div class="fig-title">Rolling Sortino (6-Month)</div>
-<div class="fig-note" data-analysis="rolling_sortino"></div>
-</figcaption>
-</figure><figure class="chart-figure">
-<div class="chart-frame" data-slot="worst_dd_periods"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 10</div>
-<div class="fig-title">Worst 5 Drawdown Periods</div>
-<div class="fig-note" data-analysis="worst_dd_periods"></div>
-</figcaption>
-</figure></div>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="underwater"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 11</div>
-<div class="fig-title">Underwater Plot</div>
-<div class="fig-note" data-analysis="underwater"></div>
-</figcaption>
-</figure>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="monthly_heatmap"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 12</div>
-<div class="fig-title">Monthly Returns Heatmap</div>
-<div class="fig-note" data-analysis="monthly_heatmap"></div>
-</figcaption>
-</figure>
-<figure class="chart-figure" style="margin-top:30px;">
-<div class="chart-frame" data-slot="equity_trade_overlay"><!-- script chèn SVG Trade Overlay --></div>
-<figcaption>
-<div class="fig-num">Hình 13</div>
-<div class="fig-title">Equity Curve + Trade Entry/Exit Overlay</div>
-<div class="fig-note" data-analysis="trade_execution_summary"></div>
-</figcaption>
-</figure>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="trade_pnl_distribution"><!-- script chèn SVG Trade Distribution --></div>
-<figcaption>
-<div class="fig-num">Hình 14</div>
-<div class="fig-title">Trade Return % Distribution</div>
-</figcaption>
-</figure>
-</section><section class="level2 wide" id="p1-charts-test">
-<h2>1.5 Visual Performance Review — Test Set</h2>
-<p class="narrow" style="margin-bottom:22px;">Đối chiếu nhanh hiệu năng trên tập test (out-of-sample), cùng phương pháp tính từ QuantStats như tập train ở trên — chỉ giữ lại chart và chỉ số chính.</p>
+<!-- ============ SECTION 1.5: TEST SET ANALYTICS ============ -->
+<section class="level2 wide" id="p1-test-analytics">
+<h2>1.5 Out-of-Sample Performance Analytics — Test Set</h2>
+<p class="narrow" style="margin-bottom:24px;">Phân tích hiệu năng Out-of-Sample trên tập Test. Đối chiếu trực tiếp để phát hiện các dấu hiệu suy giảm hiệu năng (Degradation) hoặc overfitting.</p>
+
 <div class="card-grid" style="margin-bottom:26px;">
-<div class="kpi-card">
-<div class="kc-label">CAGR (Test)</div>
-<div class="kc-value" data-metric="test_cagrpct">—</div>
-<div class="kc-target" data-badge="test_cagr"></div>
+<div class="kpi-card"><div class="kc-label">CAGR (Test)</div><div class="kc-value" data-metric="test_cagrpct">—</div><div class="kc-target" data-badge="test_cagr"></div></div>
+<div class="kpi-card"><div class="kc-label">Max Drawdown (Test)</div><div class="kc-value" data-metric="test_max_drawdown_abs">—</div><div class="kc-target" data-badge="test_mdd"></div></div>
+<div class="kpi-card"><div class="kc-label">Profit Factor (Test)</div><div class="kc-value" data-metric="test_profit_factor">—</div><div class="kc-target" data-badge="test_pf"></div></div>
+<div class="kpi-card"><div class="kc-label">Sharpe (Test)</div><div class="kc-value" data-metric="test_sharpe">—</div><div class="kc-target">out-of-sample</div></div>
 </div>
-<div class="kpi-card">
-<div class="kc-label">Max Drawdown (Test)</div>
-<div class="kc-value" data-metric="test_max_drawdown_abs">—</div>
-<div class="kc-target" data-badge="test_mdd"></div>
+
+<!-- Tier 1: ECharts Suite (Test Set) -->
+<figure class="chart-figure">
+<div id="test-echart-equity-waterfall" style="width:100%;height:400px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
+</figure>
+<figure class="chart-figure">
+<div id="test-echart-price-signals" style="width:100%;height:380px;background:#F6F5F0;border-radius:6px;padding:10px;"></div>
+</figure>
+
+<div class="chart-grid-2">
+<figure class="chart-figure"><div id="test-echart-long-short" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div></figure>
+<figure class="chart-figure"><div id="test-echart-mae-mfe" style="width:100%;height:340px;background:#F6F5F0;border-radius:6px;padding:10px;"></div></figure>
 </div>
-<div class="kpi-card">
-<div class="kc-label">Profit Factor (Test)</div>
-<div class="kc-value" data-metric="test_profit_factor">—</div>
-<div class="kc-target" data-badge="test_pf"></div>
-</div>
-<div class="kpi-card">
-<div class="kc-label">Sharpe (Test)</div>
-<div class="kc-value" data-metric="test_sharpe">—</div>
-<div class="kc-target">tham khảo</div>
-</div>
+
+<!-- Tier 2: Collapsible QuantStats SVG Charts (Test Set - Full 12 Charts) -->
+<details class="qs-toggle">
+<summary>
+<span>Chi tiết 12 Biểu đồ Vector QuantStats Gốc (Test Set)</span>
+<span>Mở rộng / Thu hẹp ▼</span>
+</summary>
+<div class="qs-toggle-body">
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_cumulative_return"></div><figcaption><div class="fig-num">Hình 13</div><div class="fig-title">Cumulative Return (Test)</div></figcaption></figure>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_cumulative_return_log"></div><figcaption><div class="fig-num">Hình 14</div><div class="fig-title">Cumulative Return Log (Test)</div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_eoy_returns_chart"></div><figcaption><div class="fig-num">Hình 15</div><div class="fig-title">EOY Returns (Test)</div></figcaption></figure>
 </div>
 <div class="chart-grid-2">
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="test_cumulative_return"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 13</div>
-<div class="fig-title">Cumulative Return — Test</div>
-</figcaption>
-</figure>
-<figure class="chart-figure">
-<div class="chart-frame" data-slot="test_underwater"><!-- script chèn SVG --></div>
-<figcaption>
-<div class="fig-num">Hình 14</div>
-<div class="fig-title">Underwater Plot — Test</div>
-</figcaption>
-</figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_monthly_dist"></div><figcaption><div class="fig-num">Hình 16</div><div class="fig-title">Monthly Dist (Test)</div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_return_quantiles"></div><figcaption><div class="fig-num">Hình 17</div><div class="fig-title">Return Quantiles (Test)</div></figcaption></figure>
 </div>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_daily_returns"></div><figcaption><div class="fig-num">Hình 18</div><div class="fig-title">Daily Returns (Test)</div></figcaption></figure>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_rolling_vol"></div><figcaption><div class="fig-num">Hình 19</div><div class="fig-title">Rolling Volatility (Test)</div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_rolling_sharpe"></div><figcaption><div class="fig-num">Hình 20</div><div class="fig-title">Rolling Sharpe (Test)</div></figcaption></figure>
+</div>
+<div class="chart-grid-2">
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_rolling_sortino"></div><figcaption><div class="fig-num">Hình 21</div><div class="fig-title">Rolling Sortino (Test)</div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_worst_dd_periods"></div><figcaption><div class="fig-num">Hình 22</div><div class="fig-title">Worst Drawdowns (Test)</div></figcaption></figure>
+</div>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_underwater"></div><figcaption><div class="fig-num">Hình 23</div><div class="fig-title">Underwater Plot (Test)</div></figcaption></figure>
+<figure class="chart-figure"><div class="chart-frame" data-slot="test_monthly_heatmap"></div><figcaption><div class="fig-num">Hình 24</div><div class="fig-title">Monthly Heatmap (Test)</div></figcaption></figure>
+</div>
+</details>
 </section>
 
+<!-- ============ SECTION 1.6: COMPARATIVE DEGRADATION ANALYSIS ============ -->
 <section class="level2 narrow" id="p1-summary">
-<h2>1.6 Nhận định tổng kết Phần I</h2>
+<h2>1.6 In-Sample vs. Out-of-Sample Robustness Diagnosis</h2>
+<p class="narrow" style="margin-bottom:20px;">Bảng so sánh đối chiếu tỷ lệ suy giảm chỉ số từ tập Train (In-Sample) sang tập Test (Out-of-Sample) để nhận diện bẫy Overfitting.</p>
+<table style="margin-bottom:24px;">
+<thead><tr><th>Chỉ số Hiệu năng</th><th class="num">Train (In-Sample)</th><th class="num">Test (Out-of-Sample)</th><th class="num">Đánh giá Vững chắc</th></tr></thead>
+<tbody>
+<tr><td>CAGR (%/năm)</td><td class="num" data-metric="cagrpct">—</td><td class="num" data-metric="test_cagrpct">—</td><td class="num" data-badge="test_cagr"></td></tr>
+<tr><td>Max Drawdown (%)</td><td class="num" data-metric="max_drawdown_abs">—</td><td class="num" data-metric="test_max_drawdown_abs">—</td><td class="num" data-badge="test_mdd"></td></tr>
+<tr><td>Profit Factor</td><td class="num" data-metric="profit_factor">—</td><td class="num" data-metric="test_profit_factor">—</td><td class="num" data-badge="test_pf"></td></tr>
+<tr><td>Sharpe Ratio</td><td class="num" data-metric="sharpe">—</td><td class="num" data-metric="test_sharpe">—</td><td class="num">out-of-sample</td></tr>
+</tbody>
+</table>
 <p data-analysis="part1_summary"></p>
 </section>

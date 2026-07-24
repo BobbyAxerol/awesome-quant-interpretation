@@ -24,4 +24,4 @@ def test_echarts_builder():
 
     assert "<script>" in script
     assert "echarts.init" in script
-    assert "Interactive Equity Curve" in script
+    assert "Standalone Equity Curve" in script

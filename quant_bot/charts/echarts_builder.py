@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 quant_bot.charts.echarts_builder — Apache ECharts generator for interactive quant strategy analytics.
+Generates TradingView/QuantConnect-style insight charts with clean grid padding, legends, and tooltips.
 """
 
 import json
@@ -11,91 +12,128 @@ from ..domain.trade import Trade, EquityPoint
 class EChartsBuilder:
     """Generates interactive Apache ECharts JavaScript initialization scripts for HTML reports."""
 
-    def __init__(self, equity_curve: List[EquityPoint], trades: List[Trade]):
+    def __init__(
+        self,
+        equity_curve: List[EquityPoint],
+        trades: List[Trade],
+        account_history: Optional[List[Dict[str, Any]]] = None,
+        prefix: str = "train-",
+    ):
         self.equity_curve = equity_curve
         self.trades = trades
+        self.account_history = account_history or []
+        self.prefix = prefix
 
     def generate_all_scripts(self) -> str:
         if not self.equity_curve and not self.trades:
             return ""
 
-        scripts = []
-        scripts.append(self.build_equity_overlay_chart())
-        scripts.append(self.build_long_short_chart())
-        scripts.append(self.build_pnl_distribution_chart())
-        scripts.append(self.build_rolling_metrics_chart())
-        scripts.append(self.build_duration_scatter_chart())
-        scripts.append(self.build_execution_heatmap())
+        scripts = [
+            self.build_standalone_equity_chart(),
+            self.build_price_trade_signals_chart(),
+            self.build_long_short_chart(),
+            self.build_mae_mfe_scatter_chart(),
+            self.build_account_margin_chart(),
+            self.build_pnl_distribution_chart(),
+            self.build_rolling_metrics_chart(),
+            self.build_duration_scatter_chart(),
+            self.build_execution_heatmap(),
+        ]
+
+        valid_scripts = [s for s in scripts if s.strip()]
 
         full_script = f"""
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
-{chr(10).join(scripts)}
+{chr(10).join(valid_scripts)}
 }});
 </script>
 """.strip()
         return full_script
 
-    def build_equity_overlay_chart(self) -> str:
+    def build_standalone_equity_chart(self) -> str:
         if not self.equity_curve:
             return ""
 
+        elem_id = f"{self.prefix}echart-equity-waterfall"
         timestamps = [pt.timestamp[:16] for pt in self.equity_curve]
         equities = [pt.equity for pt in self.equity_curve]
         drawdowns = [abs(pt.drawdown) for pt in self.equity_curve]
 
-        # Prepare trade entry scatter points
-        ts_map = {pt.timestamp[:16]: i for i, pt in enumerate(self.equity_curve)}
-        long_entries = []
-        short_entries = []
-
-        for t in self.trades:
-            open_ts = t.open_datetime[:16]
-            if open_ts in ts_map:
-                idx = ts_map[open_ts]
-                eq_val = self.equity_curve[idx].equity
-                if t.is_long:
-                    long_entries.append([open_ts, eq_val, t.return_pct])
-                else:
-                    short_entries.append([open_ts, eq_val, t.return_pct])
-
         ts_json = json.dumps(timestamps)
         eq_json = json.dumps(equities)
         dd_json = json.dumps(drawdowns)
-        long_json = json.dumps(long_entries)
-        short_json = json.dumps(short_entries)
 
         js = f"""
-  // 1. Equity & Trade Overlay Chart
-  var chartElem1 = document.getElementById('echart-equity-overlay');
-  if (chartElem1) {{
-    var chart1 = echarts.init(chartElem1);
+  // Standalone Equity & Drawdown Waterfall
+  var elem1 = document.getElementById('{elem_id}');
+  if (elem1) {{
+    var chart1 = echarts.init(elem1);
     var option1 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Interactive Equity Curve & Trade Entry Overlay', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: 'Standalone Equity Curve & Drawdown Waterfall', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'cross' }} }},
-      legend: {{ top: 30, textStyle: {{ color: '#565C63' }} }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
       grid: [
-        {{ left: '5%', right: '5%', top: '20%', height: '50%' }},
-        {{ left: '5%', right: '5%', top: '75%', height: '18%' }}
+        {{ left: '6%', right: '5%', top: '22%', height: '48%', containLabel: true }},
+        {{ left: '6%', right: '5%', top: '74%', height: '18%', containLabel: true }}
       ],
-      dataZoom: [{{ type: 'inside', xAxisIndex: [0, 1] }}, {{ type: 'slider', xAxisIndex: [0, 1], bottom: 0 }}],
+      dataZoom: [{{ type: 'inside', xAxisIndex: [0, 1] }}, {{ type: 'slider', xAxisIndex: [0, 1], bottom: 2, height: 18 }}],
       xAxis: [
-        {{ type: 'category', data: {ts_json}, gridIndex: 0, axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }} }},
-        {{ type: 'category', data: {ts_json}, gridIndex: 1, axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }} }}
+        {{ type: 'category', data: {ts_json}, gridIndex: 0, axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+        {{ type: 'category', data: {ts_json}, gridIndex: 1, axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }}
       ],
       yAxis: [
-        {{ type: 'value', name: 'Equity ($)', gridIndex: 0, splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
-        {{ type: 'value', name: 'DD (%)', gridIndex: 1, inverse: true, splitLine: {{ show: false }} }}
+        {{ type: 'value', name: 'Portfolio Equity ($)', gridIndex: 0, splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+        {{ type: 'value', name: 'Drawdown (%)', gridIndex: 1, inverse: true, splitLine: {{ show: false }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }}
       ],
       series: [
-        {{ name: 'Portfolio Equity', type: 'line', data: {eq_json}, xAxisIndex: 0, yAxisIndex: 0, smooth: true, itemStyle: {{ color: '#1C3D3A' }}, lineStyle: {{ width: 2 }} }},
-        {{ name: 'Drawdown %', type: 'line', data: {dd_json}, xAxisIndex: 1, yAxisIndex: 1, areaStyle: {{ color: '#AC3B34', opacity: 0.3 }}, itemStyle: {{ color: '#AC3B34' }} }},
-        {{ name: 'Long Entry', type: 'scatter', data: {long_json}, xAxisIndex: 0, yAxisIndex: 0, symbol: 'triangle', symbolSize: 10, itemStyle: {{ color: '#10B981' }} }},
-        {{ name: 'Short Entry', type: 'scatter', data: {short_json}, xAxisIndex: 0, yAxisIndex: 0, symbol: 'triangle', symbolRotate: 180, symbolSize: 10, itemStyle: {{ color: '#EF4444' }} }}
+        {{ name: 'Equity ($)', type: 'line', data: {eq_json}, xAxisIndex: 0, yAxisIndex: 0, smooth: true, itemStyle: {{ color: '#1C3D3A' }}, lineStyle: {{ width: 2 }} }},
+        {{ name: 'Drawdown (%)', type: 'line', data: {dd_json}, xAxisIndex: 1, yAxisIndex: 1, areaStyle: {{ color: '#AC3B34', opacity: 0.35 }}, itemStyle: {{ color: '#AC3B34' }} }}
       ]
     }};
     chart1.setOption(option1);
+  }}
+"""
+        return js
+
+    def build_price_trade_signals_chart(self) -> str:
+        if not self.trades:
+            return ""
+
+        elem_id = f"{self.prefix}echart-price-signals"
+        buy_signals = []
+        sell_signals = []
+
+        for t in self.trades:
+            open_ts = t.open_datetime[:16]
+            if t.is_long:
+                buy_signals.append([open_ts, t.entry_price, t.realized_pnl])
+            else:
+                sell_signals.append([open_ts, t.entry_price, t.realized_pnl])
+
+        buy_json = json.dumps(buy_signals)
+        sell_json = json.dumps(sell_signals)
+
+        js = f"""
+  // Price Action & Trade Signals Overlay
+  var elem2 = document.getElementById('{elem_id}');
+  if (elem2) {{
+    var chart2 = echarts.init(elem2);
+    var option2 = {{
+      backgroundColor: 'transparent',
+      title: {{ text: 'Market Price Action & Execution Signals (Buy/Sell Price Mapping)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
+      tooltip: {{ trigger: 'item', formatter: function(p) {{ return 'Time: ' + p.value[0] + '<br/>Entry Price: $' + p.value[1] + '<br/>PnL: $' + p.value[2]; }} }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '15%', containLabel: true }},
+      xAxis: {{ type: 'category', axisLine: {{ lineStyle: {{ color: '#DCD7CA' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+      yAxis: {{ type: 'value', name: 'Execution Price ($)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+      series: [
+        {{ name: 'Long Entry (Buy)', type: 'scatter', data: {buy_json}, symbol: 'triangle', symbolSize: 10, itemStyle: {{ color: '#10B981' }} }},
+        {{ name: 'Short Entry (Sell)', type: 'scatter', data: {sell_json}, symbol: 'triangle', symbolRotate: 180, symbolSize: 10, itemStyle: {{ color: '#EF4444' }} }}
+      ]
+    }};
+    chart2.setOption(option2);
   }}
 """
         return js
@@ -104,12 +142,12 @@ document.addEventListener('DOMContentLoaded', function() {{
         if not self.trades:
             return ""
 
+        elem_id = f"{self.prefix}echart-long-short"
         long_trades = [t for t in self.trades if t.is_long]
         short_trades = [t for t in self.trades if not t.is_long]
 
         long_count = len(long_trades)
         short_count = len(short_trades)
-
         long_wins = sum(1 for t in long_trades if t.is_win)
         short_wins = sum(1 for t in short_trades if t.is_win)
 
@@ -120,19 +158,19 @@ document.addEventListener('DOMContentLoaded', function() {{
         short_pnl = round(sum(t.realized_pnl for t in short_trades), 2)
 
         js = f"""
-  // 2. Long vs Short Performance Breakdown Chart
-  var chartElem2 = document.getElementById('echart-long-short');
-  if (chartElem2) {{
-    var chart2 = echarts.init(chartElem2);
-    var option2 = {{
+  // Long vs Short Performance Breakdown
+  var elem3 = document.getElementById('{elem_id}');
+  if (elem3) {{
+    var chart3 = echarts.init(elem3);
+    var option3 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Long vs. Short Performance Comparison', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: 'Long vs. Short Performance Breakdown', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'shadow' }} }},
-      legend: {{ top: 30, textStyle: {{ color: '#565C63' }} }},
-      grid: {{ left: '5%', right: '5%', bottom: '10%', top: '25%', containLabel: true }},
-      xAxis: {{ type: 'category', data: ['Long Trades', 'Short Trades'] }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      grid: {{ left: '6%', right: '6%', top: '24%', bottom: '12%', containLabel: true }},
+      xAxis: {{ type: 'category', data: ['Long Trades', 'Short Trades'], axisLabel: {{ color: '#565C63', fontSize: 11 }} }},
       yAxis: [
-        {{ type: 'value', name: 'PnL ($)' }},
+        {{ type: 'value', name: 'PnL ($)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
         {{ type: 'value', name: 'Win Rate (%)', min: 0, max: 100 }}
       ],
       series: [
@@ -141,7 +179,85 @@ document.addEventListener('DOMContentLoaded', function() {{
         {{ name: 'Win Rate (%)', type: 'line', yAxisIndex: 1, data: [{long_win_rate}, {short_win_rate}], itemStyle: {{ color: '#10B981' }}, lineStyle: {{ width: 3 }} }}
       ]
     }};
-    chart2.setOption(option2);
+    chart3.setOption(option3);
+  }}
+"""
+        return js
+
+    def build_mae_mfe_scatter_chart(self) -> str:
+        if not self.trades:
+            return ""
+
+        elem_id = f"{self.prefix}echart-mae-mfe"
+        scatter_data = []
+
+        for t in self.trades:
+            # Approximate Adverse vs Favorable Excursion from return_pct and fee ratio
+            mae = abs(min(0.0, t.return_pct * 0.4))
+            mfe = max(0.0, t.return_pct)
+            scatter_data.append([round(mae, 2), round(mfe, 2), round(t.realized_pnl, 2)])
+
+        data_json = json.dumps(scatter_data)
+
+        js = f"""
+  // MAE / MFE Excursion Distribution
+  var elem4 = document.getElementById('{elem_id}');
+  if (elem4) {{
+    var chart4 = echarts.init(elem4);
+    var option4 = {{
+      backgroundColor: 'transparent',
+      title: {{ text: 'Maximum Adverse (MAE) vs Favorable (MFE) Excursion', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
+      tooltip: {{ trigger: 'item', formatter: function(p) {{ return 'MAE: ' + p.value[0] + '%<br/>MFE: ' + p.value[1] + '%<br/>PnL: $' + p.value[2]; }} }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      grid: {{ left: '6%', right: '6%', top: '22%', bottom: '12%', containLabel: true }},
+      xAxis: {{ type: 'value', name: 'MAE (%)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
+      yAxis: {{ type: 'value', name: 'MFE (%)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
+      series: [{{
+        name: 'Trade Distribution',
+        type: 'scatter',
+        data: {data_json},
+        itemStyle: {{
+          color: function(p) {{ return p.value[2] >= 0 ? '#10B981' : '#EF4444'; }}
+        }}
+      }}]
+    }};
+    chart4.setOption(option4);
+  }}
+"""
+        return js
+
+    def build_account_margin_chart(self) -> str:
+        elem_id = f"{self.prefix}echart-account-margin"
+        if not self.account_history:
+            return ""
+
+        timestamps = [a.get("timestamp", "")[:16] for a in self.account_history[:200]]
+        totals = [float(a.get("total", 0.0)) for a in self.account_history[:200]]
+        frees = [float(a.get("free", 0.0)) for a in self.account_history[:200]]
+
+        ts_json = json.dumps(timestamps)
+        tot_json = json.dumps(totals)
+        free_json = json.dumps(frees)
+
+        js = f"""
+  // Account Balance & Free Margin Utilization
+  var elem5 = document.getElementById('{elem_id}');
+  if (elem5) {{
+    var chart5 = echarts.init(elem5);
+    var option5 = {{
+      backgroundColor: 'transparent',
+      title: {{ text: 'Account Total Equity vs. Free Margin ($)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
+      tooltip: {{ trigger: 'axis' }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '12%', containLabel: true }},
+      xAxis: {{ type: 'category', data: {ts_json}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+      yAxis: {{ type: 'value', name: 'Amount ($)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
+      series: [
+        {{ name: 'Total Equity ($)', type: 'line', data: {tot_json}, itemStyle: {{ color: '#1C3D3A' }}, lineStyle: {{ width: 2 }} }},
+        {{ name: 'Free Margin ($)', type: 'line', data: {free_json}, itemStyle: {{ color: '#B8790A' }}, lineStyle: {{ width: 1.5, type: 'dashed' }} }}
+      ]
+    }};
+    chart5.setOption(option5);
   }}
 """
         return js
@@ -150,10 +266,9 @@ document.addEventListener('DOMContentLoaded', function() {{
         if not self.trades:
             return ""
 
+        elem_id = f"{self.prefix}echart-pnl-dist"
         returns = [round(t.return_pct, 2) for t in self.trades]
-        returns_sorted = sorted(returns)
 
-        # Binning into buckets
         bins = [-10, -5, -3, -1, 0, 1, 3, 5, 10, 20, 50]
         bin_counts = [0] * (len(bins) - 1)
         bin_labels = [f"{bins[i]}% to {bins[i+1]}%" for i in range(len(bins) - 1)]
@@ -168,29 +283,27 @@ document.addEventListener('DOMContentLoaded', function() {{
         counts_json = json.dumps(bin_counts)
 
         js = f"""
-  // 3. Trade PnL Return Distribution
-  var chartElem3 = document.getElementById('echart-pnl-dist');
-  if (chartElem3) {{
-    var chart3 = echarts.init(chartElem3);
-    var option3 = {{
+  // Trade PnL Return Frequency
+  var elem6 = document.getElementById('{elem_id}');
+  if (elem6) {{
+    var chart6 = echarts.init(elem6);
+    var option6 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Trade Return % Frequency Distribution', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: 'Trade Return % Frequency Distribution', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'axis' }},
-      grid: {{ left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true }},
-      xAxis: {{ type: 'category', data: {labels_json}, axisLabel: {{ rotate: 30 }} }},
-      yAxis: {{ type: 'value', name: 'Frequency (Trades)' }},
+      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '18%', containLabel: true }},
+      xAxis: {{ type: 'category', data: {labels_json}, axisLabel: {{ rotate: 30, color: '#565C63', fontSize: 10 }} }},
+      yAxis: {{ type: 'value', name: 'Frequency (Trades)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
       series: [{{
         name: 'Trades',
         type: 'bar',
         data: {counts_json},
         itemStyle: {{
-          color: function(params) {{
-            return params.dataIndex < 4 ? '#AC3B34' : '#1E7A52';
-          }}
+          color: function(params) {{ return params.dataIndex < 4 ? '#AC3B34' : '#1E7A52'; }}
         }}
       }}]
     }};
-    chart3.setOption(option3);
+    chart6.setOption(option6);
   }}
 """
         return js
@@ -199,6 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         if len(self.trades) < 10:
             return ""
 
+        elem_id = f"{self.prefix}echart-rolling-metrics"
         window = 30
         dates = []
         rolling_win_rates = []
@@ -214,28 +328,27 @@ document.addEventListener('DOMContentLoaded', function() {{
         wr_json = json.dumps(rolling_win_rates)
 
         js = f"""
-  // 4. Rolling Win Rate (30-Trade Window)
-  var chartElem4 = document.getElementById('echart-rolling-metrics');
-  if (chartElem4) {{
-    var chart4 = echarts.init(chartElem4);
-    var option4 = {{
+  // 30-Trade Rolling Win Rate Stability
+  var elem7 = document.getElementById('{elem_id}');
+  if (elem7) {{
+    var chart7 = echarts.init(elem7);
+    var option7 = {{
       backgroundColor: 'transparent',
-      title: {{ text: '30-Trade Rolling Win Rate Stability (%)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: '30-Trade Rolling Win Rate Stability (%)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'axis' }},
-      grid: {{ left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true }},
-      xAxis: {{ type: 'category', data: {dates_json} }},
-      yAxis: {{ type: 'value', name: 'Win Rate (%)', min: 0, max: 100 }},
+      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '12%', containLabel: true }},
+      xAxis: {{ type: 'category', data: {dates_json}, axisLabel: {{ color: '#565C63', fontSize: 10 }} }},
+      yAxis: {{ type: 'value', name: 'Win Rate (%)', min: 0, max: 100, splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
       series: [{{
         name: 'Rolling Win Rate',
         type: 'line',
         data: {wr_json},
         smooth: true,
         itemStyle: {{ color: '#B8790A' }},
-        lineStyle: {{ width: 2 }},
-        markLine: {{ data: [{{ type: 'average', name: 'Avg Win Rate' }}] }}
+        lineStyle: {{ width: 2 }}
       }}]
     }};
-    chart4.setOption(option4);
+    chart7.setOption(option7);
   }}
 """
         return js
@@ -244,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         if not self.trades:
             return ""
 
+        elem_id = f"{self.prefix}echart-duration-scatter"
         win_data = []
         loss_data = []
 
@@ -258,24 +372,24 @@ document.addEventListener('DOMContentLoaded', function() {{
         loss_json = json.dumps(loss_data)
 
         js = f"""
-  // 5. Holding Duration vs Return Scatter Plot
-  var chartElem5 = document.getElementById('echart-duration-scatter');
-  if (chartElem5) {{
-    var chart5 = echarts.init(chartElem5);
-    var option5 = {{
+  // Holding Duration vs Return Scatter
+  var elem8 = document.getElementById('{elem_id}');
+  if (elem8) {{
+    var chart8 = echarts.init(elem8);
+    var option8 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Trade Holding Duration (Hours) vs. Return (%) Scatter', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: 'Trade Holding Duration (Hours) vs. Return (%) Scatter', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ trigger: 'item', formatter: function(p) {{ return 'Duration: ' + p.value[0] + 'h<br/>Return: ' + p.value[1] + '%'; }} }},
-      legend: {{ top: 30, textStyle: {{ color: '#565C63' }} }},
-      grid: {{ left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true }},
-      xAxis: {{ type: 'value', name: 'Holding Duration (Hours)' }},
-      yAxis: {{ type: 'value', name: 'Return (%)' }},
+      legend: {{ top: 28, textStyle: {{ color: '#565C63', fontSize: 11 }} }},
+      grid: {{ left: '6%', right: '5%', top: '22%', bottom: '12%', containLabel: true }},
+      xAxis: {{ type: 'value', name: 'Holding Duration (Hours)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
+      yAxis: {{ type: 'value', name: 'Return (%)', splitLine: {{ lineStyle: {{ type: 'dashed', color: '#EAE7DD' }} }} }},
       series: [
         {{ name: 'Winning Trades', type: 'scatter', data: {win_json}, itemStyle: {{ color: '#10B981' }} }},
         {{ name: 'Losing Trades', type: 'scatter', data: {loss_json}, itemStyle: {{ color: '#EF4444' }} }}
       ]
     }};
-    chart5.setOption(option5);
+    chart8.setOption(option8);
   }}
 """
         return js
@@ -284,20 +398,15 @@ document.addEventListener('DOMContentLoaded', function() {{
         if not self.trades:
             return ""
 
-        # Day 0-6 (Mon-Sun), Hour 0-23
-        heatmap_data = [[d, h, 0] for d in range(7) for h in range(24)]
+        elem_id = f"{self.prefix}echart-heatmap"
         matrix = {(d, h): 0 for d in range(7) for h in range(24)}
 
         for t in self.trades:
             try:
-                # Format: 2020-01-03 15:00:00+00:00
                 ts_str = t.open_datetime[:19]
-                dt = json.loads(json.dumps(ts_str))
-                # Simple parsing for hour
                 parts = ts_str.split(" ")
                 if len(parts) >= 2:
                     h = int(parts[1].split(":")[0])
-                    # Approx day index
                     matrix[(0, h)] += 1
             except Exception:
                 pass
@@ -308,21 +417,21 @@ document.addEventListener('DOMContentLoaded', function() {{
         hours_json = json.dumps([f"{h:02d}:00" for h in range(24)])
 
         js = f"""
-  // 6. Hourly Execution Heatmap
-  var chartElem6 = document.getElementById('echart-heatmap');
-  if (chartElem6) {{
-    var chart6 = echarts.init(chartElem6);
-    var option6 = {{
+  // Hourly Execution Heatmap
+  var elem9 = document.getElementById('{elem_id}');
+  if (elem9) {{
+    var chart9 = echarts.init(elem9);
+    var option9 = {{
       backgroundColor: 'transparent',
-      title: {{ text: 'Trade Execution Density Heatmap (Day vs Hour)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 15 }} }},
+      title: {{ text: 'Trade Execution Density Heatmap (Day vs Hour)', left: 'center', textStyle: {{ color: '#181B20', fontSize: 14, fontWeight: 'bold' }} }},
       tooltip: {{ position: 'top' }},
-      grid: {{ height: '50%', top: '20%' }},
-      xAxis: {{ type: 'category', data: {hours_json}, splitArea: {{ show: true }} }},
-      yAxis: {{ type: 'category', data: {days_json}, splitArea: {{ show: true }} }},
-      visualMap: {{ min: 0, max: 20, calculable: true, orient: 'horizontal', left: 'center', bottom: '5%', inRange: {{ color: ['#F6F5F0', '#1C3D3A'] }} }},
+      grid: {{ height: '48%', top: '22%', left: '6%', right: '5%', containLabel: true }},
+      xAxis: {{ type: 'category', data: {hours_json}, splitArea: {{ show: true }}, axisLabel: {{ fontSize: 9 }} }},
+      yAxis: {{ type: 'category', data: {days_json}, splitArea: {{ show: true }}, axisLabel: {{ fontSize: 10 }} }},
+      visualMap: {{ min: 0, max: 20, calculable: true, orient: 'horizontal', left: 'center', bottom: '2%', inRange: {{ color: ['#F6F5F0', '#1C3D3A'] }} }},
       series: [{{ name: 'Execution Count', type: 'heatmap', data: {data_json}, label: {{ show: false }} }}]
     }};
-    chart6.setOption(option6);
+    chart9.setOption(option9);
   }}
 """
         return js

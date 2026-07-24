@@ -101,6 +101,24 @@ class FillReportExtractor(BaseExtractor):
         return fills
 
 
+class AccountReportExtractor(BaseExtractor):
+    """Extractor for account_report.csv."""
+
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+
+    def extract(self) -> List[Dict[str, Any]]:
+        if not os.path.exists(self.file_path):
+            return []
+
+        rows = []
+        with open(self.file_path, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                rows.append(row)
+        return rows
+
+
 class StrategyRunExtractor:
     """Convenience Extractor to parse an entire strategy run folder (e.g., report_ToTheMoon-Trainset)."""
 
@@ -111,11 +129,13 @@ class StrategyRunExtractor:
         trade_log_file = os.path.join(self.run_dir, "trade_log.csv")
         equity_file = os.path.join(self.run_dir, "equity_curve.csv")
         fills_file = os.path.join(self.run_dir, "fills_report.csv")
+        account_file = os.path.join(self.run_dir, "account_report.csv")
         metrics_file = os.path.join(self.run_dir, "metrics_summary.json")
 
         trades = TradeLogExtractor(trade_log_file).extract()
         equity_curve = EquityCurveExtractor(equity_file).extract()
         fills = FillReportExtractor(fills_file).extract()
+        account_history = AccountReportExtractor(account_file).extract()
 
         metrics_summary = {}
         if os.path.exists(metrics_file):
@@ -126,5 +146,6 @@ class StrategyRunExtractor:
             "trades": trades,
             "equity_curve": equity_curve,
             "fills": fills,
+            "account_history": account_history,
             "metrics_summary": metrics_summary,
         }

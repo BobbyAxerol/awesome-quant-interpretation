@@ -166,11 +166,10 @@ class HTMLReportRenderer:
     def _fill_test_section(self, soup: BeautifulSoup, test_dataset: ReportDataset):
         svgs, kpi, test_badges = test_dataset.svgs, test_dataset.kpi, test_dataset.badges
 
-        slot_map = {"test_cumulative_return": "cumulative_return", "test_underwater": "underwater"}
         for el in soup.find_all(attrs={"data-slot": True}):
-            test_slot = el.get("data-slot")
-            if test_slot in slot_map:
-                src_slot = slot_map[test_slot]
+            test_slot = el.get("data-slot", "")
+            if test_slot.startswith("test_"):
+                src_slot = test_slot[5:]  # Strip 'test_' prefix
                 if src_slot in svgs:
                     el.clear()
                     el.append(BeautifulSoup(svgs[src_slot], "html.parser"))

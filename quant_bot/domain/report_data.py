@@ -19,5 +19,6 @@ class ReportDataset:
     trades: List[Trade] = field(default_factory=list)
     equity_curve: List[EquityPoint] = field(default_factory=list)
     fills: List[Fill] = field(default_factory=list)
+    account_history: List[Dict[str, Any]] = field(default_factory=list)
     metrics_summary: Dict[str, Any] = field(default_factory=dict)
     badges: Dict[str, BadgeStatus] = field(default_factory=dict)
