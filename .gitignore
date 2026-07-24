@@ -69,7 +69,6 @@ Thumbs.db
 
 # Project generated artifacts
 report_output.html
-report_final.html
 *.sanity_check.png
 html_quanstats/
 *.tmp
