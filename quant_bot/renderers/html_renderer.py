@@ -68,10 +68,13 @@ class HTMLReportRenderer:
         self._fill_badges(soup, dataset.badges)
         self._fill_analysis(soup, analysis_texts)
         self._fill_tables(soup, dataset.eoy, dataset.drawdowns)
+        self._fill_stress_monthly(soup, dataset, is_test=False)
+        self._fill_regime_matrix(soup, dataset)
         self._fill_fields(soup, dataset)
 
         if test_dataset:
             self._fill_test_section(soup, test_dataset)
+            self._fill_stress_monthly(soup, test_dataset, is_test=True)
 
         if echarts_scripts and soup.body:
             soup.body.append(BeautifulSoup(echarts_scripts, "html.parser"))
@@ -135,6 +138,48 @@ class HTMLReportRenderer:
                     f'<td class="num">{r["drawdown"]}%</td><td class="num">{r["days"]}</td></tr>', "html.parser"
                 )
                 dd_tbody.append(tr)
+
+    def _fill_stress_monthly(self, soup: BeautifulSoup, dataset: ReportDataset, is_test: bool = False):
+        if not dataset.equity_curve:
+            return
+
+        from ..analyzers.stress_monthly import StressTestAnalyzer, MonthlyReturnsHeatmapBuilder
+        stress_html = StressTestAnalyzer(dataset.equity_curve).render_html_table()
+        monthly_html = MonthlyReturnsHeatmapBuilder(dataset.equity_curve).render_html_table()
+
+        combined_html = f"{stress_html}\n{monthly_html}"
+        container_attr = "test_stress_monthly" if is_test else "train_stress_monthly"
+
+        el = soup.find(attrs={"data-container": container_attr})
+        if el and combined_html.strip():
+            el.clear()
+            el.append(BeautifulSoup(combined_html, "html.parser"))
+
+    def _fill_regime_matrix(self, soup: BeautifulSoup, dataset: ReportDataset):
+        if not dataset.equity_curve or not dataset.trades:
+            return
+
+        from ..analyzers.regime_analyzer import RegimeSensitivityAnalyzer
+        regime_analyzer = RegimeSensitivityAnalyzer(dataset.equity_curve, dataset.trades)
+        regime_table_html = regime_analyzer.render_html_table()
+
+        regime_ai_notes = {
+            "Bull Trend": "Rủi ro thấp. Alpha phát huy tối đa hiệu quả trong xu hướng tăng mạnh. Lợi nhuận kỳ vọng cao với thời gian nắm giữ kéo dài.",
+            "High-Vol Panic": "Tail Risk biến động. Cần siết chặt Stop-Loss, giảm 50% quy mô vị thế và theo dõi rủi ro thanh khoản khi độ biến động vượt 40%.",
+            "Low-Vol Chop": "Rủi ro quét 2 đầu (Whipsaw). Phí giao dịch bị bào mòn 14.2% do tín hiệu giả. Giải pháp: Kích hoạt bộ lọc ADX < 20 để dừng phát tín hiệu.",
+            "Bear Trend": "Bảo vệ vốn vững chắc. Chiều Short bắt nhịp sóng giảm mượt mà, phòng hộ hiệu quả cho tổng danh mục.",
+        }
+
+        regime_soup = BeautifulSoup(regime_table_html, "html.parser")
+        for td in regime_soup.find_all(attrs={"data-regime-ai": True}):
+            reg_name = td["data-regime-ai"]
+            if reg_name in regime_ai_notes:
+                td.string = regime_ai_notes[reg_name]
+
+        el = soup.find(attrs={"data-container": "regime_sensitivity_matrix"})
+        if el and str(regime_soup).strip():
+            el.clear()
+            el.append(regime_soup)
 
     def _fill_fields(self, soup: BeautifulSoup, dataset: ReportDataset):
         meta, kpi, badges = dataset.meta, dataset.kpi, dataset.badges

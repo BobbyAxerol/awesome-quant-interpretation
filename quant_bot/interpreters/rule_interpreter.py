@@ -190,3 +190,15 @@ class RuleBasedStrategyInterpreter(BaseInterpreter):
 
     def _a_echart_account_margin_summary(self, k: Dict[str, Any]) -> str:
         return "Theo dõi số dư tài khoản thực tế và lượng ký quỹ khả dụng để quản lý rủi ro cháy tài sản và kiểm soát mức độ đòn bẩy."
+
+    def _a_regime_bull_ai(self) -> str:
+        return "Rủi ro thấp. Alpha phát huy tối đa hiệu quả trong xu hướng tăng mạnh. Lợi nhuận kỳ vọng cao với thời gian nắm giữ kéo dài."
+
+    def _a_regime_panic_ai(self) -> str:
+        return "Tail Risk biến động. Cần siết chặt Stop-Loss, giảm 50% quy mô vị thế và theo dõi rủi ro thanh khoản khi độ biến động vượt 40%."
+
+    def _a_regime_chop_ai(self) -> str:
+        return "Rủi ro quét 2 đầu (Whipsaw). Phí giao dịch bị bào mòn do tín hiệu giả. Giải pháp: Kích hoạt bộ lọc ADX < 20 để dừng phát tín hiệu."
+
+    def _a_regime_bear_ai(self) -> str:
+        return "Bảo vệ vốn vững chắc. Chiều Short bắt nhịp sóng giảm mượt mà, phòng hộ hiệu quả cho tổng danh mục."
