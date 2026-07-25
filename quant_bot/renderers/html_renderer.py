@@ -68,10 +68,12 @@ class HTMLReportRenderer:
         self._fill_badges(soup, dataset.badges)
         self._fill_analysis(soup, analysis_texts)
         self._fill_tables(soup, dataset.eoy, dataset.drawdowns)
+        self._fill_stress_monthly(soup, dataset, is_test=False)
         self._fill_fields(soup, dataset)
 
         if test_dataset:
             self._fill_test_section(soup, test_dataset)
+            self._fill_stress_monthly(soup, test_dataset, is_test=True)
 
         if echarts_scripts and soup.body:
             soup.body.append(BeautifulSoup(echarts_scripts, "html.parser"))
@@ -135,6 +137,22 @@ class HTMLReportRenderer:
                     f'<td class="num">{r["drawdown"]}%</td><td class="num">{r["days"]}</td></tr>', "html.parser"
                 )
                 dd_tbody.append(tr)
+
+    def _fill_stress_monthly(self, soup: BeautifulSoup, dataset: ReportDataset, is_test: bool = False):
+        if not dataset.equity_curve:
+            return
+
+        from ..analyzers.stress_monthly import StressTestAnalyzer, MonthlyReturnsHeatmapBuilder
+        stress_html = StressTestAnalyzer(dataset.equity_curve).render_html_table()
+        monthly_html = MonthlyReturnsHeatmapBuilder(dataset.equity_curve).render_html_table()
+
+        combined_html = f"{stress_html}\n{monthly_html}"
+        container_attr = "test_stress_monthly" if is_test else "train_stress_monthly"
+
+        el = soup.find(attrs={"data-container": container_attr})
+        if el and combined_html.strip():
+            el.clear()
+            el.append(BeautifulSoup(combined_html, "html.parser"))
 
     def _fill_fields(self, soup: BeautifulSoup, dataset: ReportDataset):
         meta, kpi, badges = dataset.meta, dataset.kpi, dataset.badges
