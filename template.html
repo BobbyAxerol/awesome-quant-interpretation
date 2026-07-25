@@ -405,9 +405,61 @@ details.qs-toggle .qs-toggle-body {
 </tbody>
 </table>
 <div data-field="period_mismatch_note"><!-- script chèn blockquote cảnh báo nếu khung thời gian lệch --></div>
-</section><section class="level2 narrow" id="p1-overview">
-<h2>1.2 Ý tưởng Cốt lõi</h2>
-<p>Phần lớn tín hiệu động lượng trong crypto đối mặt một đánh đổi cố hữu: vi phân trực tiếp để đo tốc độ đổi hướng sẽ khuếch đại nhiễu tần số cao; còn làm mượt theo kiểu tích luỹ quá khứ (như EMA) lại tạo độ trễ pha, khiến tín hiệu đến sau khi cơ hội đã trôi qua.</p>
+</section>
+
+<!-- ============ SECTION 1.2: CORE STRATEGY THESIS FRAMEWORK ============ -->
+<section class="level2 narrow" id="p1-thesis">
+<h2>1.2 Ý tưởng Cốt lõi &amp; Luận điểm Chiến lược (Strategy Framework)</h2>
+<p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;">Khung diễn giải 5 Tầng chuẩn hóa dùng để làm rõ bản chất kinh tế (Economic Rationale), công thức tín hiệu và ma trận nhạy cảm rủi ro của chiến lược định lượng.</p>
+
+<div class="card-grid" style="grid-template-columns:1fr;gap:16px;margin-bottom:24px;">
+  <!-- 1.2.1 Investment Thesis -->
+  <div style="background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow);">
+    <h3 style="font-family:var(--font-display);font-size:16px;color:var(--ink);margin:0 0 6px;">1.2.1 Luận điểm Đầu tư &amp; Cơ chế Sinh Alpha (Investment Thesis &amp; Economic Rationale)</h3>
+    <em style="color:var(--ink-soft);font-size:13px;display:block;margin-bottom:10px;font-style:italic;">Guideline: Trình bày bất cập thị trường (Market Inefficiency) hoặc thiên kiến hành vi mà chiến lược khai thác, lý do tại sao Edge tồn tại và tính bền vững trước các rào cản chi phí/thanh khoản.</em>
+    <p style="font-size:13.5px;color:var(--ink);margin:0;" data-field="thesis_rationale">
+      Chiến lược tập trung khai thác hiện tượng bất cân bằng động lượng (Momentum Disparity) và hiệu ứng cuộn biến động (Volatility Clustering) trên các tài sản tiền mã hóa có thanh khoản cao. Alpha được bảo vệ bởi rào cản đòn bẩy và chi phí trượt giá của các quỹ quy mô lớn.
+    </p>
+  </div>
+
+  <!-- 1.2.2 Universe & Data Pipeline -->
+  <div style="background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow);">
+    <h3 style="font-family:var(--font-display);font-size:16px;color:var(--ink);margin:0 0 6px;">1.2.2 Vũ trụ Giao dịch &amp; Xử lý Dữ liệu (Universe &amp; Data Pipeline)</h3>
+    <em style="color:var(--ink-soft);font-size:13px;display:block;margin-bottom:10px;font-style:italic;">Guideline: Định nghĩa rõ danh mục tài sản mục tiêu (Spot/Perpetuals), điều kiện lọc thanh khoản và quy trình làm sạch dữ liệu chống Look-ahead Bias &amp; Survivorship Bias.</em>
+    <p style="font-size:13.5px;color:var(--ink);margin:0;" data-field="thesis_pipeline">
+      Danh mục chọn lọc từ Top tài sản Perpetual hợp đồng tương lai có khối lượng giao dịch 24h &gt; $50M. Dữ liệu thô OHLCV và Orderbook được xử lý qua bộ lọc cửa sổ trượt (Rolling Window) đảm bảo không sử dụng dữ liệu tương lai (Zero Look-ahead Bias).
+    </p>
+  </div>
+
+  <!-- 1.2.3 Signal Formulation -->
+  <div style="background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow);">
+    <h3 style="font-family:var(--font-display);font-size:16px;color:var(--ink);margin:0 0 6px;">1.2.3 Công thức Tín hiệu &amp; Mô hình Alpha (Signal Formulation &amp; Flowchart)</h3>
+    <em style="color:var(--ink-soft);font-size:13px;display:block;margin-bottom:10px;font-style:italic;">Guideline: Trình bày công thức toán học/tín hiệu chỉ báo đại diện cho lõi động lượng/đảo chiều và Sơ đồ Khối xử lý tín hiệu.</em>
+    <p style="font-size:13.5px;color:var(--ink);margin-bottom:12px;" data-field="thesis_signal">
+      Tín hiệu Alpha được xây dựng từ phép vi phân cục bộ mượt (Smoothed Local Differential) trên cửa sổ \(N\) nến gần nhất, kết hợp chuẩn hóa Z-Score theo biên độ biến động rolling.
+    </p>
+    <div style="background:var(--paper-raised);border:1px dashed var(--line);border-radius:4px;padding:12px;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--accent-2);">
+      [Dữ liệu OHLCV Thô] ➔ [Bộ lọc Chuẩn hóa Z-Score] ➔ [Xác định Độ dốc Biên phải] ➔ [Tín hiệu Khớp lệnh Long/Short]
+    </div>
+  </div>
+
+  <!-- 1.2.4 Portfolio Construction & Execution -->
+  <div style="background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow);">
+    <h3 style="font-family:var(--font-display);font-size:16px;color:var(--ink);margin:0 0 6px;">1.2.4 Cấu trúc Danh mục &amp; Quy tắc Khớp lệnh (Portfolio Construction &amp; Execution Protocol)</h3>
+    <em style="color:var(--ink-soft);font-size:13px;display:block;margin-bottom:10px;font-style:italic;">Guideline: Quy định rõ điều kiện kích hoạt Long/Short, các mốc thoát lệnh (Stop Loss, Take Profit, Trailing Stop) và mô hình phân bổ vốn (Volatility Parity/Risk Parity).</em>
+    <p style="font-size:13.5px;color:var(--ink);margin:0;" data-field="thesis_execution">
+      Khớp lệnh dạng Market Order khi Tín hiệu vượt ngưỡng Z-Score (+1.5 cho Long, -1.5 cho Short). Quản lý vị thế theo mô hình Volatility Parity (cân bằng rủi ro biến động), kết hợp cắt lỗ cố định 2.0% và Trailing Stop theo đường ATR.
+    </p>
+  </div>
+
+  <!-- 1.2.5 Regime Sensitivity & Failure Modes -->
+  <div style="background:#FFFFFF;border:1px solid var(--line);border-radius:6px;padding:18px;box-shadow:var(--shadow);">
+    <h3 style="font-family:var(--font-display);font-size:16px;color:var(--ink);margin:0 0 6px;">1.2.5 Ma trận Nhạy cảm Trạng thái &amp; Failure Modes Tự động (Regime Sensitivity &amp; AI Failure Diagnosis)</h3>
+    <em style="color:var(--ink-soft);font-size:13px;display:block;margin-bottom:10px;font-style:italic;">Guideline: Phân tích tự động hiệu năng qua 4 Trạng thái Thị trường (Bull, High-Vol Panic, Low-Vol Chop, Bear) kèm chỉ số đặc biệt (Fee Drag, Avg Hold Hours) và nhận định rủi ro khách quan từ AI RAG.</em>
+    <div data-container="regime_sensitivity_matrix"></div>
+  </div>
+</div>
+<section class="level2 wide" id="p1-kpi">
 <div class="chart-grid-2" style="margin:20px 0 26px;">
 <div class="chart-frame"><svg viewbox="0 0 340 150" xmlns="http://www.w3.org/2000/svg">
 <text fill="var(--ink-faint)" font-family="IBM Plex Mono" font-size="10" x="20" y="16">TÍN HIỆU THÔ</text>
